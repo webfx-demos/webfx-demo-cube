@@ -1,5 +1,6 @@
 package dev.webfx.demo.webgl;
 
+import dev.webfx.kit.util.properties.FXProperties;
 import dev.webfx.kit.util.scene.DeviceSceneUtil;
 import dev.webfx.kit.webgl.*;
 import dev.webfx.platform.console.Console;
@@ -10,9 +11,10 @@ import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.paint.LinearGradient;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import org.joml.Matrix4d;
@@ -20,11 +22,11 @@ import org.joml.Matrix4d;
 public class WebGLApplication extends Application {
 
     private Node webGLNode;
+    private boolean copyVideo;
 
     @Override
     public void start(Stage primaryStage) {
         BorderPane borderPane = new BorderPane();
-        borderPane.setBackground(Background.fill(LinearGradient.valueOf("to bottom, #B2F4B6, #3BF0E4, #C2A0FD, #EA5DAD, #FF7571, #FFE580")));
         Scene scene = DeviceSceneUtil.newScene(borderPane, 800, 600);
         primaryStage.setScene(scene);
         if (!WebGL.supportsWebGL()) {
@@ -110,7 +112,13 @@ public class WebGLApplication extends Application {
         Buffers buffers = initBuffers(gl);
 
         // Load texture
-        WebGLTexture texture = loadTexture(gl, Resource.toUrl("WebFX-512x512.png", getClass()));
+        //WebGLTexture texture = loadTexture(gl, Resource.toUrl("WebFX-512x512.png", getClass()));
+        WebGLTexture texture = initTexture(gl);
+        // Excellent: FX2048.mp4, SpaceFX.mp4, ModernGauge.mp4
+        // Ok: Mandelbrot.mp4, DemoFX.mp4
+        // Bad (aspect ratio): EnzoClocks.mp4, RayTracer.mp4, TallyCounter.mp4
+        MediaView video = setupVideo(Resource.toUrl("FX2048.mp4", getClass()));
+
         // Flip image pixels into the bottom-to-top order that WebGL expects.
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
@@ -123,6 +131,9 @@ public class WebGLApplication extends Application {
             public void handle(long now) {
                 deltaTime = now - then;
                 then = now;
+                if (copyVideo) {
+                    updateTexture(gl, texture, video);
+                }
                 drawScene(gl, programInfo, buffers, texture, cubeRotation);
                 cubeRotation += deltaTime * 1d / 1_000_000_000; // convert to seconds
             }
@@ -462,6 +473,90 @@ public class WebGLApplication extends Application {
 
     private boolean isPowerOf2(int value) {
         return (value & (value - 1)) == 0;
+    }
+
+    private WebGLTexture initTexture(WebGLRenderingContext gl) {
+        WebGLTexture texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        // Because video has to be download over the internet
+        // they might take a moment until it's ready so
+        // put a single pixel in the texture so we can
+        // use it immediately.
+        int level = 0;
+        int internalFormat = gl.RGBA;
+        int width = 1;
+        int height = 1;
+        int border = 0;
+        int srcFormat = gl.RGBA;
+        int srcType = gl.UNSIGNED_BYTE;
+        ArrayBuffer pixel = WebGL.createUint8Array(0, 0, 255, 255); // opaque blue
+        gl.texImage2D(
+                gl.TEXTURE_2D,
+                level,
+                internalFormat,
+                width,
+                height,
+                border,
+                srcFormat,
+                srcType,
+                pixel
+                );
+
+        // Turn off mips and set wrapping to clamp to edge so it
+        // will work regardless of the dimensions of the video.
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+        return texture;
+    }
+
+    private void updateTexture(WebGLRenderingContext gl, WebGLTexture texture, MediaView video) {
+        int level = 0;
+        int internalFormat = gl.RGBA;
+        int srcFormat = gl.RGBA;
+        int srcType = gl.UNSIGNED_BYTE;
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(
+                gl.TEXTURE_2D,
+                level,
+                internalFormat,
+                srcFormat,
+                srcType,
+                video
+                );
+    }
+
+    private MediaView setupVideo(String url) {
+        MediaPlayer mediaPlayer = new MediaPlayer(new Media(url));
+
+        boolean[] playing = { false };
+        boolean[] timeupdate = { false };
+
+        mediaPlayer.setMute(true);
+        mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+
+        // Waiting for these 2 events ensures
+        // there is data in the video
+        Runnable checkReady = () -> {
+            if (playing[0] && timeupdate[0]) {
+                copyVideo = true;
+            }
+        };
+        mediaPlayer.setOnPlaying(() -> {
+            playing[0] = true;
+            checkReady.run();
+        });
+
+        FXProperties.runOnPropertiesChange(() -> {
+            timeupdate[0] = true;
+            checkReady.run();
+        }, mediaPlayer.currentTimeProperty());
+
+        MediaView mediaView = new MediaView(mediaPlayer);
+        mediaPlayer.play();
+        return mediaView;
     }
 
     // tell webgl how to pull out the texture coordinates from buffer
