@@ -49,26 +49,43 @@ public class WebGLApplication extends Application {
 
         // Vertex shader program
         String vsSource = "attribute vec4 aVertexPosition;\n" +
-                          "  attribute vec2 aTextureCoord;\n" +
+                          "    attribute vec3 aVertexNormal;\n" +
+                          "    attribute vec2 aTextureCoord;\n" +
                           "\n" +
-                          "  uniform mat4 uModelViewMatrix;\n" +
-                          "  uniform mat4 uProjectionMatrix;\n" +
+                          "    uniform mat4 uNormalMatrix;\n" +
+                          "    uniform mat4 uModelViewMatrix;\n" +
+                          "    uniform mat4 uProjectionMatrix;\n" +
                           "\n" +
-                          "  varying highp vec2 vTextureCoord;\n" +
+                          "    varying highp vec2 vTextureCoord;\n" +
+                          "    varying highp vec3 vLighting;\n" +
                           "\n" +
-                          "  void main(void) {\n" +
-                          "    gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;\n" +
-                          "    vTextureCoord = aTextureCoord;\n" +
-                          "  }";
+                          "    void main(void) {\n" +
+                          "      gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;\n" +
+                          "      vTextureCoord = aTextureCoord;\n" +
+                          "\n" +
+                          "      // Apply lighting effect\n" +
+                          "\n" +
+                          "      highp vec3 ambientLight = vec3(0.3, 0.3, 0.3);\n" +
+                          "      highp vec3 directionalLightColor = vec3(1, 1, 1);\n" +
+                          "      highp vec3 directionalVector = normalize(vec3(0.85, 0.8, 0.75));\n" +
+                          "\n" +
+                          "      highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);\n" +
+                          "\n" +
+                          "      highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);\n" +
+                          "      vLighting = ambientLight + (directionalLightColor * directional);\n" +
+                          "    }";
 
         // Fragment shader program
         String fsSource = "varying highp vec2 vTextureCoord;\n" +
+                          "    varying highp vec3 vLighting;\n" +
                           "\n" +
-                          "  uniform sampler2D uSampler;\n" +
+                          "    uniform sampler2D uSampler;\n" +
                           "\n" +
-                          "  void main(void) {\n" +
-                          "    gl_FragColor = texture2D(uSampler, vTextureCoord);\n" +
-                          "  }";
+                          "    void main(void) {\n" +
+                          "      highp vec4 texelColor = texture2D(uSampler, vTextureCoord);\n" +
+                          "\n" +
+                          "      gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a);\n" +
+                          "    }";
 
         // Create the shader program
         WebGLProgram shaderProgram = initShaderProgram(gl, vsSource, fsSource);
@@ -79,10 +96,12 @@ public class WebGLApplication extends Application {
         ProgramInfo programInfo = new ProgramInfo(
                 shaderProgram,
                 gl.getAttribLocation(shaderProgram, "aVertexPosition"),
+                gl.getAttribLocation(shaderProgram, "aVertexNormal"),
                 0, //gl.getAttribLocation(shaderProgram, "aVertexColor"),
                 gl.getAttribLocation(shaderProgram, "aTextureCoord"),
                 gl.getUniformLocation(shaderProgram, "uProjectionMatrix"),
                 gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
+                gl.getUniformLocation(shaderProgram, "uNormalMatrix"),
                 gl.getUniformLocation(shaderProgram, "uSampler")
         );
 
@@ -113,19 +132,23 @@ public class WebGLApplication extends Application {
     private static class ProgramInfo {
         final WebGLProgram program;
         final int vertexPosition;
+        final int vertexNormal;
         final int vertexColor;
         final int textureCoord;
         final WebGLUniformLocation projectionMatrix;
         final WebGLUniformLocation modelViewMatrix;
+        final WebGLUniformLocation normalMatrix;
         final WebGLUniformLocation uSampler;
 
-        public ProgramInfo(WebGLProgram program, int vertexPosition, int vertexColor, int textureCoord, WebGLUniformLocation projectionMatrix, WebGLUniformLocation modelViewMatrix, WebGLUniformLocation uSampler) {
+        public ProgramInfo(WebGLProgram program, int vertexPosition, int vertexNormal, int vertexColor, int textureCoord, WebGLUniformLocation projectionMatrix, WebGLUniformLocation modelViewMatrix, WebGLUniformLocation normalMatrix, WebGLUniformLocation uSampler) {
             this.program = program;
             this.vertexPosition = vertexPosition;
+            this.vertexNormal = vertexNormal;
             this.vertexColor = vertexColor;
             this.textureCoord = textureCoord;
             this.projectionMatrix = projectionMatrix;
             this.modelViewMatrix = modelViewMatrix;
+            this.normalMatrix = normalMatrix;
             this.uSampler = uSampler;
         }
     }
@@ -175,17 +198,20 @@ public class WebGLApplication extends Application {
         //WebGLBuffer colorBuffer = initColorBuffer(gl);
         WebGLBuffer textureCoordBuffer = initTextureBuffer(gl);
         WebGLBuffer indexBuffer = initIndexBuffer(gl);
-        return new Buffers(positionBuffer, null, textureCoordBuffer, indexBuffer);
+        WebGLBuffer normalBuffer = initNormalBuffer(gl);
+        return new Buffers(positionBuffer, normalBuffer, null, textureCoordBuffer, indexBuffer);
     }
 
     private static class Buffers {
         final WebGLBuffer position;
+        final WebGLBuffer normal;
         final WebGLBuffer color;
         final WebGLBuffer textureCoord;
         final WebGLBuffer indices;
 
-        public Buffers(WebGLBuffer position, WebGLBuffer color, WebGLBuffer textureCoord, WebGLBuffer indices) {
+        public Buffers(WebGLBuffer position, WebGLBuffer normal, WebGLBuffer color, WebGLBuffer textureCoord, WebGLBuffer indices) {
             this.position = position;
+            this.normal = normal;
             this.color = color;
             this.textureCoord = textureCoord;
             this.indices = indices;
@@ -285,6 +311,39 @@ public class WebGLApplication extends Application {
                 );
 
         return indexBuffer;
+    }
+
+    private WebGLBuffer initNormalBuffer(WebGLRenderingContext gl) {
+        WebGLBuffer normalBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+
+        double[] vertexNormals = {
+                // Front
+                0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
+
+                // Back
+                0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0,
+
+                // Top
+                0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0,
+
+                // Bottom
+                0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0,
+
+                // Right
+                1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+
+                // Left
+                -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0,
+        };
+
+        gl.bufferData(
+                gl.ARRAY_BUFFER,
+                WebGL.createFloat32Array(vertexNormals),
+                gl.STATIC_DRAW
+                );
+
+        return normalBuffer;
     }
 
     private WebGLBuffer initTextureBuffer(WebGLRenderingContext gl) {
@@ -424,6 +483,26 @@ public class WebGLApplication extends Application {
         gl.enableVertexAttribArray(programInfo.textureCoord);
     }
 
+    // Tell WebGL how to pull out the normals from
+    // the normal buffer into the vertexNormal attribute.
+    private void setNormalAttribute(WebGLRenderingContext gl, Buffers buffers, ProgramInfo programInfo) {
+        int numComponents = 3;
+        int type = gl.FLOAT;
+        boolean normalize = false;
+        int stride = 0;
+        int offset = 0;
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normal);
+        gl.vertexAttribPointer(
+                programInfo.vertexNormal,
+                numComponents,
+                type,
+                normalize,
+                stride,
+                offset
+                );
+        gl.enableVertexAttribArray(programInfo.vertexNormal);
+    }
+
     private void drawScene(WebGLRenderingContext gl, ProgramInfo programInfo, Buffers buffers, WebGLTexture texture, double cubeRotation) {
         gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
         gl.clearDepth(1.0); // Clear everything
@@ -463,11 +542,15 @@ public class WebGLApplication extends Application {
                 .rotate(cubeRotation * 0.7, 0, 1, 0) // axis to rotate around (Y)
                 .rotate(cubeRotation * 0.3, 1, 0, 0); // // axis to rotate around (X)
 
+        Matrix4d normalMatrix4 = new Matrix4d();
+        modelViewMatrix4.invert(normalMatrix4).transpose();
+
         // Tell WebGL how to pull out the positions from the position
         // buffer into the vertexPosition attribute.
         setPositionAttribute(gl, buffers, programInfo);
         //setColorAttribute(gl, buffers, programInfo);
         setTextureAttribute(gl, buffers, programInfo);
+        setNormalAttribute(gl, buffers, programInfo);
 
         // Tell WebGL which indices to use to index the vertices
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
@@ -485,6 +568,11 @@ public class WebGLApplication extends Application {
                 programInfo.modelViewMatrix,
                 false,
                 modelViewMatrix4.get(new double[16])
+                );
+        gl.uniformMatrix4fv(
+                programInfo.normalMatrix,
+                false,
+                normalMatrix4.get(new double[16])
                 );
 
         // Tell WebGL we want to affect texture unit 0
