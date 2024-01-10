@@ -3,14 +3,17 @@ package dev.webfx.demo.webgl;
 import dev.webfx.kit.util.scene.DeviceSceneUtil;
 import dev.webfx.kit.webgl.*;
 import dev.webfx.platform.console.Console;
+import dev.webfx.platform.resource.Resource;
 import dev.webfx.platform.uischeduler.UiScheduler;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.paint.Color;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import org.joml.Matrix4d;
 
@@ -20,14 +23,21 @@ public class WebGLApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        webGLNode = WebGL.createWebGLNode(640, 480);
-        BorderPane borderPane = new BorderPane(webGLNode);
-        borderPane.setBackground(Background.fill(Color.PURPLE));
-        Scene scene = DeviceSceneUtil.newScene(borderPane, 800, 600, Color.CYAN);
+        BorderPane borderPane = new BorderPane();
+        borderPane.setBackground(Background.fill(LinearGradient.valueOf("to bottom, #B2F4B6, #3BF0E4, #C2A0FD, #EA5DAD, #FF7571, #FFE580")));
+        Scene scene = DeviceSceneUtil.newScene(borderPane, 800, 600);
         primaryStage.setScene(scene);
+        if (!WebGL.supportsWebGL()) {
+            borderPane.setCenter(new Text("WebGL is not supported on this platform, sorry!"));
+        } else {
+            // Reading back the final scene width and height for the browser
+            double sceneWidth = scene.getWidth();
+            double sceneHeight = scene.getHeight();
+            webGLNode = WebGL.createWebGLNode(sceneWidth, sceneHeight);
+            borderPane.setCenter(webGLNode);
+            UiScheduler.scheduleInAnimationFrame(this::runWebGL, 1);
+        }
         primaryStage.show();
-        //if (WebGL.supportsWebGL())
-        UiScheduler.scheduleInAnimationFrame(this::runWebGL, 1);
     }
 
     private void runWebGL() {
@@ -38,25 +48,27 @@ public class WebGLApplication extends Application {
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         // Vertex shader program
-        String vsSource = "    attribute vec4 aVertexPosition;\n" +
-                          "    attribute vec4 aVertexColor;\n" +
+        String vsSource = "attribute vec4 aVertexPosition;\n" +
+                          "  attribute vec2 aTextureCoord;\n" +
                           "\n" +
-                          "    uniform mat4 uModelViewMatrix;\n" +
-                          "    uniform mat4 uProjectionMatrix;\n" +
+                          "  uniform mat4 uModelViewMatrix;\n" +
+                          "  uniform mat4 uProjectionMatrix;\n" +
                           "\n" +
-                          "    varying lowp vec4 vColor;\n" +
+                          "  varying highp vec2 vTextureCoord;\n" +
                           "\n" +
-                          "    void main(void) {\n" +
-                          "      gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;\n" +
-                          "      vColor = aVertexColor;\n" +
-                          "    }";
+                          "  void main(void) {\n" +
+                          "    gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;\n" +
+                          "    vTextureCoord = aTextureCoord;\n" +
+                          "  }";
 
         // Fragment shader program
-        String fsSource = "varying lowp vec4 vColor;\n" +
+        String fsSource = "varying highp vec2 vTextureCoord;\n" +
                           "\n" +
-                          "    void main(void) {\n" +
-                          "      gl_FragColor = vColor;\n" +
-                          "    }";
+                          "  uniform sampler2D uSampler;\n" +
+                          "\n" +
+                          "  void main(void) {\n" +
+                          "    gl_FragColor = texture2D(uSampler, vTextureCoord);\n" +
+                          "  }";
 
         // Create the shader program
         WebGLProgram shaderProgram = initShaderProgram(gl, vsSource, fsSource);
@@ -67,14 +79,21 @@ public class WebGLApplication extends Application {
         ProgramInfo programInfo = new ProgramInfo(
                 shaderProgram,
                 gl.getAttribLocation(shaderProgram, "aVertexPosition"),
-                gl.getAttribLocation(shaderProgram, "aVertexColor"),
+                0, //gl.getAttribLocation(shaderProgram, "aVertexColor"),
+                gl.getAttribLocation(shaderProgram, "aTextureCoord"),
                 gl.getUniformLocation(shaderProgram, "uProjectionMatrix"),
-                gl.getUniformLocation(shaderProgram, "uModelViewMatrix")
+                gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
+                gl.getUniformLocation(shaderProgram, "uSampler")
         );
 
         // Here's where we call the routine that builds all the
         // objects we'll be drawing.
         Buffers buffers = initBuffers(gl);
+
+        // Load texture
+        WebGLTexture texture = loadTexture(gl, Resource.toUrl("WebFX-512x512.png", getClass()));
+        // Flip image pixels into the bottom-to-top order that WebGL expects.
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
         // Draw the scene
         new AnimationTimer() {
@@ -85,7 +104,7 @@ public class WebGLApplication extends Application {
             public void handle(long now) {
                 deltaTime = now - then;
                 then = now;
-                drawScene(gl, programInfo, buffers, cubeRotation);
+                drawScene(gl, programInfo, buffers, texture, cubeRotation);
                 cubeRotation += deltaTime * 1d / 1_000_000_000; // convert to seconds
             }
         }.start();
@@ -95,15 +114,19 @@ public class WebGLApplication extends Application {
         final WebGLProgram program;
         final int vertexPosition;
         final int vertexColor;
+        final int textureCoord;
         final WebGLUniformLocation projectionMatrix;
         final WebGLUniformLocation modelViewMatrix;
+        final WebGLUniformLocation uSampler;
 
-        public ProgramInfo(WebGLProgram program, int vertexPosition, int vertexColor, WebGLUniformLocation projectionMatrix, WebGLUniformLocation modelViewMatrix) {
+        public ProgramInfo(WebGLProgram program, int vertexPosition, int vertexColor, int textureCoord, WebGLUniformLocation projectionMatrix, WebGLUniformLocation modelViewMatrix, WebGLUniformLocation uSampler) {
             this.program = program;
             this.vertexPosition = vertexPosition;
             this.vertexColor = vertexColor;
+            this.textureCoord = textureCoord;
             this.projectionMatrix = projectionMatrix;
             this.modelViewMatrix = modelViewMatrix;
+            this.uSampler = uSampler;
         }
     }
 
@@ -149,19 +172,22 @@ public class WebGLApplication extends Application {
 
     private Buffers initBuffers(WebGLRenderingContext gl) {
         WebGLBuffer positionBuffer = initPositionBuffer(gl);
-        WebGLBuffer colorBuffer = initColorBuffer(gl);
+        //WebGLBuffer colorBuffer = initColorBuffer(gl);
+        WebGLBuffer textureCoordBuffer = initTextureBuffer(gl);
         WebGLBuffer indexBuffer = initIndexBuffer(gl);
-        return new Buffers(positionBuffer, colorBuffer, indexBuffer);
+        return new Buffers(positionBuffer, null, textureCoordBuffer, indexBuffer);
     }
 
     private static class Buffers {
         final WebGLBuffer position;
         final WebGLBuffer color;
+        final WebGLBuffer textureCoord;
         final WebGLBuffer indices;
 
-        public Buffers(WebGLBuffer position, WebGLBuffer color, WebGLBuffer indices) {
+        public Buffers(WebGLBuffer position, WebGLBuffer color, WebGLBuffer textureCoord, WebGLBuffer indices) {
             this.position = position;
             this.color = color;
+            this.textureCoord = textureCoord;
             this.indices = indices;
         }
     }
@@ -261,82 +287,144 @@ public class WebGLApplication extends Application {
         return indexBuffer;
     }
 
+    private WebGLBuffer initTextureBuffer(WebGLRenderingContext gl) {
+        WebGLBuffer textureCoordBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
+
+        double[] textureCoordinates = {
+                // Front
+                0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
+                // Back
+                0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
+                // Top
+                0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
+                // Bottom
+                0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
+                // Right
+                0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
+                // Left
+                0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0
+        };
+
+        gl.bufferData(
+                gl.ARRAY_BUFFER,
+                WebGL.createFloat32Array(textureCoordinates),
+                gl.STATIC_DRAW
+                );
+
+        return textureCoordBuffer;
+    }
+
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
-    private void setPositionAttribute(WebGLRenderingContext gl, WebGLBuffer buffers, int vertexPosition) {
+    private void setPositionAttribute(WebGLRenderingContext gl, Buffers buffers, ProgramInfo programInfo) {
         int numComponents = 3; // pull out 2 values per iteration
         int type = gl.FLOAT; // the data in the buffer is 32bit floats
         boolean normalize = false; // don't normalize
         int stride = 0; // how many bytes to get from one set of values to the next
         // 0 = use type and numComponents above
         int offset = 0; // how many bytes inside the buffer to start from
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers/*.position*/);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
         gl.vertexAttribPointer(
-                vertexPosition,
+                programInfo.vertexPosition,
                 numComponents,
                 type,
                 normalize,
                 stride,
                 offset
                 );
-        gl.enableVertexAttribArray(vertexPosition);
+        gl.enableVertexAttribArray(programInfo.vertexPosition);
     }
 
-    private WebGLBuffer initColorBuffer(WebGLRenderingContext gl) {
-        double[] colors = {
-                1.0, 1.0, 1.0, 1.0, // Front face: white
-                1.0, 1.0, 1.0, 1.0, // Front face: white
-                1.0, 1.0, 1.0, 1.0, // Front face: white
-                1.0, 1.0, 1.0, 1.0, // Front face: white
-                1.0, 0.0, 0.0, 1.0, // Back face: red
-                1.0, 0.0, 0.0, 1.0, // Back face: red
-                1.0, 0.0, 0.0, 1.0, // Back face: red
-                1.0, 0.0, 0.0, 1.0, // Back face: red
-                0.0, 1.0, 0.0, 1.0, // Top face: green
-                0.0, 1.0, 0.0, 1.0, // Top face: green
-                0.0, 1.0, 0.0, 1.0, // Top face: green
-                0.0, 1.0, 0.0, 1.0, // Top face: green
-                0.0, 0.0, 1.0, 1.0, // Bottom face: blue
-                0.0, 0.0, 1.0, 1.0, // Bottom face: blue
-                0.0, 0.0, 1.0, 1.0, // Bottom face: blue
-                0.0, 0.0, 1.0, 1.0, // Bottom face: blue
-                1.0, 1.0, 0.0, 1.0, // Right face: yellow
-                1.0, 1.0, 0.0, 1.0, // Right face: yellow
-                1.0, 1.0, 0.0, 1.0, // Right face: yellow
-                1.0, 1.0, 0.0, 1.0, // Right face: yellow
-                1.0, 0.0, 1.0, 1.0, // Left face: purple
-                1.0, 0.0, 1.0, 1.0, // Left face: purple
-                1.0, 0.0, 1.0, 1.0, // Left face: purple
-                1.0, 0.0, 1.0, 1.0 // Left face: purple
-        };
+    //
+    // Initialize a texture and load an image.
+    // When the image finished loading copy it into the texture.
+    //
+    private WebGLTexture loadTexture(WebGLRenderingContext gl, String url) {
+        WebGLTexture texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
 
-        WebGLBuffer colorBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, WebGL.createFloat32Array(colors), gl.STATIC_DRAW);
+        // Because images have to be downloaded over the internet
+        // they might take a moment until they are ready.
+        // Until then put a single pixel in the texture so we can
+        // use it immediately. When the image has finished downloading
+        // we'll update the texture with the contents of the image.
+        int level = 0;
+        int internalFormat = gl.RGBA;
+        int width = 1;
+        int height = 1;
+        int border = 0;
+        int srcFormat = gl.RGBA;
+        int srcType = gl.UNSIGNED_BYTE;
+        ArrayBuffer pixel = WebGL.createUint8Array(0, 0, 255, 255); // opaque blue
+        gl.texImage2D(
+                gl.TEXTURE_2D,
+                level,
+                internalFormat,
+                width,
+                height,
+                border,
+                srcFormat,
+                srcType,
+                pixel
+                );
 
-        return colorBuffer;
+        Image image = new Image(url, true);
+        image.progressProperty().addListener(observable -> {
+            if (image.getProgress() >= 1) {
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texImage2D(
+                        gl.TEXTURE_2D,
+                        level,
+                        internalFormat,
+                        srcFormat,
+                        srcType,
+                        image
+                        );
+
+                // WebGL1 has different requirements for power of 2 images
+                // vs. non power of 2 images so check if the image is a
+                // power of 2 in both dimensions.
+                if (isPowerOf2((int) image.getWidth()) && isPowerOf2((int) image.getHeight())) {
+                    // Yes, it's a power of 2. Generate mips.
+                    gl.generateMipmap(gl.TEXTURE_2D);
+                } else {
+                    // No, it's not a power of 2. Turn off mips and set
+                    // wrapping to clamp to edge
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                }
+            }
+        });
+
+        return texture;
     }
 
-    // Tell WebGL how to pull out the colors from the color buffer
-    // into the vertexColor attribute.
-    private void setColorAttribute(WebGLRenderingContext gl, Buffers buffers, ProgramInfo programInfo) {
-        int numComponents = 4;
-        int type = gl.FLOAT;
-        boolean normalize = false;
-        int stride = 0;
-        int offset = 0;
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+    private boolean isPowerOf2(int value) {
+        return (value & (value - 1)) == 0;
+    }
+
+    // tell webgl how to pull out the texture coordinates from buffer
+    private void setTextureAttribute(WebGLRenderingContext gl, Buffers buffers, ProgramInfo programInfo) {
+        int num = 2; // every coordinate composed of 2 values
+        int type = gl.FLOAT; // the data in the buffer is 32-bit float
+        boolean normalize = false; // don't normalize
+        int stride = 0; // how many bytes to get from one set to the next
+        int offset = 0; // how many bytes inside the buffer to start from
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
         gl.vertexAttribPointer(
-                programInfo.vertexColor,
-                numComponents,
+                programInfo.textureCoord,
+                num,
                 type,
                 normalize,
                 stride,
                 offset
                 );
-        gl.enableVertexAttribArray(programInfo.vertexColor);
+        gl.enableVertexAttribArray(programInfo.textureCoord);
     }
-    private void drawScene(WebGLRenderingContext gl, ProgramInfo programInfo, Buffers buffers, double cubeRotation) {
+
+    private void drawScene(WebGLRenderingContext gl, ProgramInfo programInfo, Buffers buffers, WebGLTexture texture, double cubeRotation) {
         gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
         gl.clearDepth(1.0); // Clear everything
         gl.enable(gl.DEPTH_TEST); // Enable depth testing
@@ -353,7 +441,7 @@ public class WebGLApplication extends Application {
         // and 100 units away from the camera.
 
         double fieldOfView = (45 * Math.PI) / 180; // in radians
-        double aspect = /*gl.canvas.clientWidth*/ 640d / /*gl.canvas.clientHeight*/ 480;
+        double aspect = WebGL.getWebGLNodeWidth(webGLNode) / WebGL.getWebGLNodeHeight(webGLNode);
         double zNear = 0.1;
         double zFar = 100.0;
 
@@ -377,8 +465,9 @@ public class WebGLApplication extends Application {
 
         // Tell WebGL how to pull out the positions from the position
         // buffer into the vertexPosition attribute.
-        setPositionAttribute(gl, buffers.position, programInfo.vertexPosition);
-        setColorAttribute(gl, buffers, programInfo);
+        setPositionAttribute(gl, buffers, programInfo);
+        //setColorAttribute(gl, buffers, programInfo);
+        setTextureAttribute(gl, buffers, programInfo);
 
         // Tell WebGL which indices to use to index the vertices
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
@@ -397,6 +486,15 @@ public class WebGLApplication extends Application {
                 false,
                 modelViewMatrix4.get(new double[16])
                 );
+
+        // Tell WebGL we want to affect texture unit 0
+        gl.activeTexture(gl.TEXTURE0);
+
+        // Bind the texture to texture unit 0
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        // Tell the shader we bound the texture to texture unit 0
+        gl.uniform1i(programInfo.uSampler, 0);
 
         int vertexCount = 36;
         int type = gl.UNSIGNED_SHORT;

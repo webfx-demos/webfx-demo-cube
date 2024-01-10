@@ -72,6 +72,8 @@
     <inherits name="org.gwtproject.nio.GwtNioSupport"/>
     <!--==========================< webfx-demo-webgl-application >==========================-->
     <source path="dev/webfx/demo/webgl"/>
+    <resource path="dev/webfx/demo/webgl"/>
+    <public includes="dev/webfx/demo/webgl/" path=""/>
     <!--=================================< webfx-kit-gwt >==================================-->
     <source path="dev/webfx/kit/launcher/spi/impl/gwt"/>
     <source path="dev/webfx/kit/mapper/spi/impl/gwt"/>

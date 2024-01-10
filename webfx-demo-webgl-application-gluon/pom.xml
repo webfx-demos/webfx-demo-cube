@@ -85,6 +85,7 @@
                         <list>util</list>
                     </attachList>
                     <resourcesList>
+                        <list>dev/webfx/demo/webgl/[^/]+$</list>
                         <list>dev/webfx/platform/meta/exe/[^/]+$</list>
                         <list>javafx/scene/control/skin/checkbox/[^/]+$</list>
                     </resourcesList>

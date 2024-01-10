@@ -7,10 +7,14 @@ module webfx.demo.webgl.application {
     requires webfx.kit.util.scene;
     requires webfx.kit.webgl;
     requires webfx.platform.console;
+    requires webfx.platform.resource;
     requires webfx.platform.uischeduler;
 
     // Exported packages
     exports dev.webfx.demo.webgl;
+
+    // Resources packages
+    opens dev.webfx.demo.webgl;
 
     // Provided services
     provides javafx.application.Application with dev.webfx.demo.webgl.WebGLApplication;
