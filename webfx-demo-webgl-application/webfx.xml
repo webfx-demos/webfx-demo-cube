@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project applicationId="dev.webfx.demo.webgl" applicationLabel="WebGL">
+
+    <exported-packages>
+        <source-packages/>
+        <resource-packages/>
+    </exported-packages>
+
+    <dependencies>
+        <used-by-source-modules/>
+    </dependencies>
+
+    <providers>
+        <provider interface="javafx.application.Application">dev.webfx.demo.webgl.WebGLApplication</provider>
+    </providers>
+
+</project>
