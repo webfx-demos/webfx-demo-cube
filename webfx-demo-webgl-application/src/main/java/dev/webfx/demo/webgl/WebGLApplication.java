@@ -15,6 +15,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import org.joml.Matrix4d;
@@ -44,10 +45,6 @@ public class WebGLApplication extends Application {
 
     private void runWebGL() {
         WebGLRenderingContext gl = WebGL.getContext(webGLNode);
-        // Set clear color to black, fully opaque
-        gl.clearColor(0, 0, 1, 1);
-        // Clear the color buffer with specified clear color
-        gl.clear(gl.COLOR_BUFFER_BIT);
 
         // Vertex shader program
         String vsSource = "attribute vec4 aVertexPosition;\n" +
@@ -112,8 +109,8 @@ public class WebGLApplication extends Application {
         Buffers buffers = initBuffers(gl);
 
         // Load texture
-        //WebGLTexture texture = loadTexture(gl, Resource.toUrl("WebFX-512x512.png", getClass()));
-        WebGLTexture texture = initTexture(gl);
+        WebGLTexture texture = loadTexture(gl, Resource.toUrl("WebFX-512x512.png", getClass()));
+
         // Excellent: FX2048.mp4, SpaceFX.mp4, ModernGauge.mp4
         // Ok: Mandelbrot.mp4, DemoFX.mp4
         // Bad (aspect ratio): EnzoClocks.mp4, RayTracer.mp4, TallyCounter.mp4
@@ -132,7 +129,7 @@ public class WebGLApplication extends Application {
                 deltaTime = now - then;
                 then = now;
                 if (copyVideo) {
-                    updateTexture(gl, texture, video);
+                    updateVideoTexture(gl, texture, video);
                 }
                 drawScene(gl, programInfo, buffers, texture, cubeRotation);
                 cubeRotation += deltaTime * 1d / 1_000_000_000; // convert to seconds
@@ -411,61 +408,12 @@ public class WebGLApplication extends Application {
     // When the image finished loading copy it into the texture.
     //
     private WebGLTexture loadTexture(WebGLRenderingContext gl, String url) {
-        WebGLTexture texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-
-        // Because images have to be downloaded over the internet
-        // they might take a moment until they are ready.
-        // Until then put a single pixel in the texture so we can
-        // use it immediately. When the image has finished downloading
-        // we'll update the texture with the contents of the image.
-        int level = 0;
-        int internalFormat = gl.RGBA;
-        int width = 1;
-        int height = 1;
-        int border = 0;
-        int srcFormat = gl.RGBA;
-        int srcType = gl.UNSIGNED_BYTE;
-        ArrayBuffer pixel = WebGL.createUint8Array(0, 0, 255, 255); // opaque blue
-        gl.texImage2D(
-                gl.TEXTURE_2D,
-                level,
-                internalFormat,
-                width,
-                height,
-                border,
-                srcFormat,
-                srcType,
-                pixel
-                );
+        WebGLTexture texture = initTexture(gl);
 
         Image image = new Image(url, true);
         image.progressProperty().addListener(observable -> {
-            if (image.getProgress() >= 1) {
-                gl.bindTexture(gl.TEXTURE_2D, texture);
-                gl.texImage2D(
-                        gl.TEXTURE_2D,
-                        level,
-                        internalFormat,
-                        srcFormat,
-                        srcType,
-                        image
-                        );
-
-                // WebGL1 has different requirements for power of 2 images
-                // vs. non power of 2 images so check if the image is a
-                // power of 2 in both dimensions.
-                if (isPowerOf2((int) image.getWidth()) && isPowerOf2((int) image.getHeight())) {
-                    // Yes, it's a power of 2. Generate mips.
-                    gl.generateMipmap(gl.TEXTURE_2D);
-                } else {
-                    // No, it's not a power of 2. Turn off mips and set
-                    // wrapping to clamp to edge
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                }
-            }
+            if (image.getProgress() >= 1)
+                updateImageTexture(gl, texture, image);
         });
 
         return texture;
@@ -473,6 +421,42 @@ public class WebGLApplication extends Application {
 
     private boolean isPowerOf2(int value) {
         return (value & (value - 1)) == 0;
+    }
+
+    private void updateImageTexture(WebGLRenderingContext gl, WebGLTexture texture, Image image) {
+        // Because images have to be downloaded over the internet
+        // they might take a moment until they are ready.
+        // Until then put a single pixel in the texture so we can
+        // use it immediately. When the image has finished downloading
+        // we'll update the texture with the contents of the image.
+        int level = 0;
+        int internalFormat = gl.RGBA;
+        int srcFormat = gl.RGBA;
+        int srcType = gl.UNSIGNED_BYTE;
+
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(
+                gl.TEXTURE_2D,
+                level,
+                internalFormat,
+                srcFormat,
+                srcType,
+                image
+        );
+
+        // WebGL1 has different requirements for power of 2 images
+        // vs. non power of 2 images so check if the image is a
+        // power of 2 in both dimensions.
+        if (isPowerOf2((int) image.getWidth()) && isPowerOf2((int) image.getHeight())) {
+            // Yes, it's a power of 2. Generate mips.
+            gl.generateMipmap(gl.TEXTURE_2D);
+        } else {
+            // No, it's not a power of 2. Turn off mips and set
+            // wrapping to clamp to edge
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        }
     }
 
     private WebGLTexture initTexture(WebGLRenderingContext gl) {
@@ -490,7 +474,8 @@ public class WebGLApplication extends Application {
         int border = 0;
         int srcFormat = gl.RGBA;
         int srcType = gl.UNSIGNED_BYTE;
-        ArrayBuffer pixel = WebGL.createUint8Array(0, 0, 255, 255); // opaque blue
+        Color color = Color.PURPLE;
+        ArrayBuffer pixel = WebGL.createUint8Array(color.getRed() * 255, color.getGreen() * 255, color.getBlue() * 255, 255); // opaque purple
         gl.texImage2D(
                 gl.TEXTURE_2D,
                 level,
@@ -512,7 +497,7 @@ public class WebGLApplication extends Application {
         return texture;
     }
 
-    private void updateTexture(WebGLRenderingContext gl, WebGLTexture texture, MediaView video) {
+    private void updateVideoTexture(WebGLRenderingContext gl, WebGLTexture texture, MediaView video) {
         int level = 0;
         int internalFormat = gl.RGBA;
         int srcFormat = gl.RGBA;
