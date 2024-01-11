@@ -5,6 +5,8 @@ import dev.webfx.kit.util.scene.DeviceSceneUtil;
 import dev.webfx.kit.webgl.*;
 import dev.webfx.platform.console.Console;
 import dev.webfx.platform.resource.Resource;
+import dev.webfx.platform.typedarray.TypedArray;
+import dev.webfx.platform.typedarray.TypedArrayFactory;
 import dev.webfx.platform.uischeduler.UiScheduler;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
@@ -258,7 +260,7 @@ public class WebGLApplication extends Application {
         // Now pass the list of positions into WebGL to build the
         // shape. We do this by creating a Float32Array from the
         // JavaScript array, then use it to fill the current buffer.
-        gl.bufferData(gl.ARRAY_BUFFER, WebGL.createFloat32Array(positions), gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, TypedArrayFactory.createFloat32Array(positions), gl.STATIC_DRAW);
 
         return positionBuffer;
     }
@@ -314,7 +316,7 @@ public class WebGLApplication extends Application {
 
         gl.bufferData(
                 gl.ELEMENT_ARRAY_BUFFER,
-                WebGL.createUint16Array(indices),
+                TypedArrayFactory.createUint16Array(indices),
                 gl.STATIC_DRAW
                 );
 
@@ -347,7 +349,7 @@ public class WebGLApplication extends Application {
 
         gl.bufferData(
                 gl.ARRAY_BUFFER,
-                WebGL.createFloat32Array(vertexNormals),
+                TypedArrayFactory.createFloat32Array(vertexNormals),
                 gl.STATIC_DRAW
                 );
 
@@ -375,7 +377,7 @@ public class WebGLApplication extends Application {
 
         gl.bufferData(
                 gl.ARRAY_BUFFER,
-                WebGL.createFloat32Array(textureCoordinates),
+                TypedArrayFactory.createFloat32Array(textureCoordinates),
                 gl.STATIC_DRAW
                 );
 
@@ -475,7 +477,7 @@ public class WebGLApplication extends Application {
         int srcFormat = gl.RGBA;
         int srcType = gl.UNSIGNED_BYTE;
         Color color = Color.PURPLE;
-        ArrayBuffer pixel = WebGL.createUint8Array(color.getRed() * 255, color.getGreen() * 255, color.getBlue() * 255, 255); // opaque purple
+        TypedArray pixel = TypedArrayFactory.createUint8Array(color.getRed() * 255, color.getGreen() * 255, color.getBlue() * 255, 255); // opaque purple
         gl.texImage2D(
                 gl.TEXTURE_2D,
                 level,

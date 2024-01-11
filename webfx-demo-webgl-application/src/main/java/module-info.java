@@ -11,6 +11,7 @@ module webfx.demo.webgl.application {
     requires webfx.lib.joml;
     requires webfx.platform.console;
     requires webfx.platform.resource;
+    requires webfx.platform.typedarray;
     requires webfx.platform.uischeduler;
 
     // Exported packages
