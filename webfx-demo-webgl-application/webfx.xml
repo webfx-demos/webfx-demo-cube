@@ -6,12 +6,33 @@
         <resource-packages/>
     </exported-packages>
 
+    <embed-resources>
+        <resource>dev/webfx/demo/webgl/cube/fragmentShader.glsl</resource>
+        <resource>dev/webfx/demo/webgl/cube/vertexShader.glsl</resource>
+        <resource>dev/webfx/demo/webgl/smoke/baseVertexShader.glsl</resource>
+        <resource>dev/webfx/demo/webgl/smoke/clearShader.glsl</resource>
+        <resource>dev/webfx/demo/webgl/smoke/displayShader.glsl</resource>
+        <resource>dev/webfx/demo/webgl/smoke/splatShader.glsl</resource>
+        <resource>dev/webfx/demo/webgl/smoke/advectionManualFilteringShader.glsl</resource>
+        <resource>dev/webfx/demo/webgl/smoke/advectionShader.glsl</resource>
+        <resource>dev/webfx/demo/webgl/smoke/divergenceShader.glsl</resource>
+        <resource>dev/webfx/demo/webgl/smoke/curlShader.glsl</resource>
+        <resource>dev/webfx/demo/webgl/smoke/vorticityShader.glsl</resource>
+        <resource>dev/webfx/demo/webgl/smoke/pressureShader.glsl</resource>
+        <resource>dev/webfx/demo/webgl/smoke/gradientSubtractShader.glsl</resource>
+        <resource>dev/webfx/demo/webgl/text/text.svg</resource>
+    </embed-resources>
+
     <dependencies>
         <used-by-source-modules/>
     </dependencies>
 
     <providers>
-        <provider interface="javafx.application.Application">dev.webfx.demo.webgl.WebGLApplication</provider>
+        <provider interface="javafx.application.Application">dev.webfx.demo.webgl.WebGLDemo</provider>
     </providers>
+
+    <required-libraries>
+        <webfx-library artifact="dev.webfx:webfx-extras:0.1.0-SNAPSHOT"/>
+    </required-libraries>
 
 </project>

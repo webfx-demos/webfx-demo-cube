@@ -93,6 +93,9 @@
                     </attachList>
                     <resourcesList>
                         <list>dev/webfx/demo/webgl/[^/]+$</list>
+                        <list>dev/webfx/demo/webgl/cube/[^/]+$</list>
+                        <list>dev/webfx/demo/webgl/smoke/[^/]+$</list>
+                        <list>dev/webfx/demo/webgl/text/[^/]+$</list>
                         <list>dev/webfx/platform/meta/exe/[^/]+$</list>
                         <list>javafx/scene/control/skin/checkbox/[^/]+$</list>
                     </resourcesList>

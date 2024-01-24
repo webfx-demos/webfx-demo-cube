@@ -80,8 +80,22 @@
     <inherits name="org.gwtproject.nio.GwtNioSupport"/>
     <!--==========================< webfx-demo-webgl-application >==========================-->
     <source path="dev/webfx/demo/webgl"/>
+    <source path="dev/webfx/demo/webgl/cube"/>
+    <source path="dev/webfx/demo/webgl/smoke"/>
+    <source path="dev/webfx/demo/webgl/text"/>
+    <source path="dev/webfx/demo/webgl/text/interpol"/>
     <resource path="dev/webfx/demo/webgl"/>
     <public includes="dev/webfx/demo/webgl/" path=""/>
+    <resource path="dev/webfx/demo/webgl/cube"/>
+    <public includes="dev/webfx/demo/webgl/cube/" path=""/>
+    <resource path="dev/webfx/demo/webgl/smoke"/>
+    <public includes="dev/webfx/demo/webgl/smoke/" path=""/>
+    <resource path="dev/webfx/demo/webgl/text"/>
+    <public includes="dev/webfx/demo/webgl/text/" path=""/>
+    <!--=============================< webfx-extras-switches >==============================-->
+    <source path="dev/webfx/extras/switches"/>
+    <!--============================< webfx-extras-util-color >=============================-->
+    <source path="dev/webfx/extras/util/color"/>
     <!--=================================< webfx-kit-gwt >==================================-->
     <source path="dev/webfx/kit/launcher/spi/impl/gwt"/>
     <source path="dev/webfx/kit/mapper/spi/impl/gwt"/>
@@ -109,12 +123,9 @@
     <!--=================================< webfx-kit-util >=================================-->
     <source path="dev/webfx/kit/util/properties"/>
     <source path="dev/webfx/kit/util/properties/conversion"/>
-    <!--==============================< webfx-kit-util-scene >==============================-->
-    <source path="dev/webfx/kit/util/scene"/>
     <!--================================< webfx-kit-webgl >=================================-->
     <source path="dev/webfx/kit/webgl"/>
     <source path="dev/webfx/kit/webgl/spi"/>
-    <source path="dev/webfx/kit/webgl/spi/impl"/>
     <!--==============================< webfx-kit-webgl-gwt >===============================-->
     <source path="dev/webfx/kit/webgl/spi/impl/gwt"/>
     <!--=================================< webfx-lib-joml >=================================-->
@@ -140,12 +151,6 @@
     <super-source includes="netscape/javascript/" path=""/>
     <!--==============================< webfx-platform-meta >===============================-->
     <source path="dev/webfx/platform/meta"/>
-    <!--===============================< webfx-platform-os >================================-->
-    <source path="dev/webfx/platform/os"/>
-    <source path="dev/webfx/platform/os/spi"/>
-    <source path="dev/webfx/platform/os/spi/impl"/>
-    <!--=============================< webfx-platform-os-gwt >==============================-->
-    <source path="dev/webfx/platform/os/spi/impl/gwt"/>
     <!--============================< webfx-platform-resource >=============================-->
     <source path="dev/webfx/platform/resource"/>
     <source path="dev/webfx/platform/resource/spi"/>
@@ -175,14 +180,6 @@
     <source path="dev/webfx/platform/util"/>
     <source path="dev/webfx/platform/util/collection"/>
     <source path="dev/webfx/platform/util/function"/>
-    <source path="dev/webfx/platform/util/keyobject"/>
-    <source path="dev/webfx/platform/util/keyobject/formatter"/>
-    <source path="dev/webfx/platform/util/keyobject/formatter/spi"/>
-    <source path="dev/webfx/platform/util/keyobject/impl"/>
-    <source path="dev/webfx/platform/util/keyobject/impl/listmap"/>
-    <source path="dev/webfx/platform/util/keyobject/parser"/>
-    <source path="dev/webfx/platform/util/keyobject/parser/spi"/>
-    <source path="dev/webfx/platform/util/keyobject/parser/spi/impl/properties"/>
     <source path="dev/webfx/platform/util/serviceloader"/>
     <source path="dev/webfx/platform/util/tuples"/>
     <source path="dev/webfx/platform/util/uuid"/>
