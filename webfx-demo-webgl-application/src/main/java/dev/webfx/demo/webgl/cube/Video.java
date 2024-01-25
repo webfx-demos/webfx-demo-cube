@@ -13,21 +13,27 @@ import javafx.scene.media.MediaView;
  */
 final class Video {
     private final WebGLRenderingContext gl;
-    private final MediaPlayer mediaPlayer;
-    private final MediaView mediaView;
+    private final String resourcePath;
+    private MediaPlayer mediaPlayer;
+    private MediaView mediaView;
     boolean playing, started;
 
     Video(WebGLRenderingContext gl, String resourcePath) {
         this.gl = gl;
-        mediaPlayer = new MediaPlayer(new Media(Resource.toUrl(resourcePath, getClass())));
-        mediaPlayer.setMute(true);
-        mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
-        mediaPlayer.setOnPlaying(() -> playing = true);
-        FXProperties.runOnPropertiesChange(() -> started = true, mediaPlayer.currentTimeProperty());
-        mediaView = new MediaView(mediaPlayer);
+        this.resourcePath = resourcePath;
     }
 
     void play(boolean play) {
+        if (mediaPlayer == null) {
+            if (!play)
+                return;
+            mediaPlayer = new MediaPlayer(new Media(Resource.toUrl(resourcePath, getClass())));
+            mediaPlayer.setMute(true);
+            mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+            mediaPlayer.setOnPlaying(() -> playing = true);
+            FXProperties.runOnPropertiesChange(() -> started = true, mediaPlayer.currentTimeProperty());
+            mediaView = new MediaView(mediaPlayer);
+        }
         boolean statusPlaying = mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING;
         if (play && !statusPlaying)
             mediaPlayer.play();
