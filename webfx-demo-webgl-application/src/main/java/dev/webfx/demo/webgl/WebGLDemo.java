@@ -15,10 +15,8 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
@@ -26,6 +24,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.util.Arrays;
+import java.util.function.BiConsumer;
 
 /**
  * @author Bruno Salmon
@@ -33,11 +32,15 @@ import java.util.Arrays;
 public class WebGLDemo extends Application {
 
     private static final Font font = Font.loadFont(Resource.toUrl("Injekuta-Reg.otf", WebGLDemo.class), 14);
+    private static final Color KEY_CORDER_COLOR = new Color(1, 1, 1, 0.2);
+    private static final CornerRadii KEY_BORDER_RADII = new CornerRadii(5);
 
     private final Canvas canvas = new Canvas();
     private final CubeScene cubeScene = new CubeScene(canvas);
     private final SmokeScene smokeScene = new SmokeScene(canvas);
     private final TextScene textScene = new TextScene();
+    private final GridPane gridPane = new GridPane();
+    private final Scene scene = new Scene(new StackPane(canvas, textScene.getContainer(), gridPane), 800, 600, Color.web("#310E68"));
     private final Text fpsText = createWhiteText("");
     private final Circle selectedPenCircle = new Circle(13, Color.TRANSPARENT);
     private boolean generateSmoke;
@@ -45,7 +48,6 @@ public class WebGLDemo extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        GridPane gridPane = new GridPane();
         gridPane.setHgap(40);
         gridPane.setVgap(15);
         StackPane.setAlignment(gridPane, Pos.BOTTOM_LEFT);
@@ -70,7 +72,7 @@ public class WebGLDemo extends Application {
         // Code switch
         gridPane.addRow(rowIndex++, createWhiteText("Code"), createSwitch(cubeScene.codeDoorShowingProperty()));
         // Keys legend
-        gridPane.addRow(rowIndex, createWhiteText("Keys"), createWhiteText("↑ ↓ ← →"));
+        gridPane.addRow(rowIndex, createWhiteText("Keys"), createKeysBox());
 
         new AnimationTimer() {
             final double fpsRefreshSeconds = 0.5;
@@ -96,8 +98,6 @@ public class WebGLDemo extends Application {
             }
         }.start();
 
-        StackPane root = new StackPane(canvas, textScene.getContainer(), gridPane);
-        Scene scene = new Scene(root, 800, 600, Color.web("#310E68"));
         canvas.widthProperty().bind(scene.widthProperty());
         canvas.heightProperty().bind(scene.heightProperty());
 
@@ -165,5 +165,45 @@ public class WebGLDemo extends Application {
             lastGeneratedSmokeTimeSeconds = 0;
         });
         return c;
+    }
+
+    private HBox createKeysBox() {
+        StackPane[] keyNodes = {
+                createKeyNode("←", KeyCode.LEFT),
+                createKeyNode("↑", KeyCode.UP),
+                createKeyNode("↓", KeyCode.DOWN),
+                createKeyNode("→", KeyCode.RIGHT)
+        };
+        BiConsumer<KeyCode, Boolean> keyHandler = (keyCode, pressed) -> {
+            switch (keyCode) {
+                case LEFT:  onKeyEvent(keyNodes[0], keyCode, pressed); break;
+                case UP:    onKeyEvent(keyNodes[1], keyCode, pressed); break;
+                case DOWN:  onKeyEvent(keyNodes[2], keyCode, pressed); break;
+                case RIGHT: onKeyEvent(keyNodes[3], keyCode, pressed); break;
+            }
+        };
+        scene.setOnKeyPressed( e -> keyHandler.accept(e.getCode(), true));
+        scene.setOnKeyReleased(e -> keyHandler.accept(e.getCode(), false));
+        return new HBox(5, keyNodes);
+    }
+
+    private StackPane createKeyNode(String keyText, KeyCode keyCode) {
+        StackPane keyNode = new StackPane(createWhiteText(keyText));
+        keyNode.setPrefSize(30, 30);
+        keyNode.setBorder(new Border(new BorderStroke(KEY_CORDER_COLOR, BorderStrokeStyle.SOLID, KEY_BORDER_RADII, BorderStroke.THIN)));
+        keyNode.setCursor(Cursor.HAND);
+        keyNode.setOnMousePressed( e -> onKeyEvent(keyNode, keyCode, true));
+        keyNode.setOnMouseReleased(e -> onKeyEvent(keyNode, keyCode, false));
+        return keyNode;
+    }
+
+    private void onKeyEvent(StackPane keyNode, KeyCode keyCode, boolean pressed) {
+        if (pressed) {
+            cubeScene.onKeyPressed(keyCode);
+            keyNode.setBackground(new Background(new BackgroundFill(KEY_CORDER_COLOR, KEY_BORDER_RADII, null)));
+        } else {
+            cubeScene.onKeyReleased(keyCode);
+            keyNode.setBackground(null);
+        }
     }
 }

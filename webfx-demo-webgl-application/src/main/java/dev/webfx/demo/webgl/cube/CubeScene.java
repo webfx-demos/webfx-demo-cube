@@ -8,13 +8,15 @@ import dev.webfx.platform.typedarray.TypedArrayFactory;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Cursor;
-import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import org.joml.Matrix4d;
 import org.joml.Vector3d;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Bruno Salmon
@@ -46,6 +48,8 @@ public final class CubeScene {
     private WebGLTexture[] textures;
     private Image[] images;
     private Video[] videos;
+    private final Set<KeyCode> pressedKeys = new HashSet<>();
+
 
     private final BooleanProperty playVideosProperty = new SimpleBooleanProperty() {
         @Override
@@ -81,7 +85,6 @@ public final class CubeScene {
     private double lastMouseX, lastMouseY, mouseDeltaX, mouseDeltaY, mouseInertiaFactor;
     private double autoRotateFactor;
     private long lastAnimationFrameTime;
-    private KeyCode pressedKeyCode;
 
     public CubeScene(Canvas canvas) {
         gl = WebGL.getWebGLContext(canvas);
@@ -163,15 +166,6 @@ public final class CubeScene {
             mouseDeltaX = e.getDeltaX(); mouseDeltaY = e.getDeltaY();
             mouseInertiaFactor = 0.001;
         });
-
-        // Keyboard steering
-        FXProperties.runNowAndOnPropertiesChange(() -> {
-            Scene scene = canvas.getScene();
-            if (scene != null) {
-                scene.setOnKeyPressed(e -> pressedKeyCode = e.getCode());
-                scene.setOnKeyReleased(e -> pressedKeyCode = null);
-            }
-        }, canvas.sceneProperty());
 
         FXProperties.runNowAndOnPropertiesChange(() -> {
             // Create a perspective matrix, a special matrix that is used to simulate the distortion of perspective in a camera.
@@ -294,6 +288,14 @@ public final class CubeScene {
         }
     }
 
+    public void onKeyPressed(KeyCode keyCode) {
+        pressedKeys.add(keyCode);
+    }
+
+    public void onKeyReleased(KeyCode keyCode) {
+        pressedKeys.remove(keyCode);
+    }
+
     public void onAnimationFrame(long now) {
         if (gl == null)
             return;
@@ -320,32 +322,25 @@ public final class CubeScene {
         mouseInertiaFactor *= 0.95;
 
         // Steering the camera from the keyboard
-        if (pressedKeyCode != null) {
+        if (!pressedKeys.isEmpty()) {
             // Refreshing camera position (in cube coordinates)
             modelViewMatrix.invert(invertMatrix).getTranslation(cameraPosition);
 
             Vector3d p = cameraPosition;
             double x = p.x, y = p.y, z = p.z;
             boolean insideCube = Math.abs(x) < 1 && Math.abs(y) < 1 && Math.abs(z) < 1;
-            switch (pressedKeyCode) {
-                case UP:
-                    modelViewMatrix.translateLocal(0, 0, 0.05);
-                    break;
-                case DOWN:
-                    modelViewMatrix.translateLocal(0, 0, -0.05);
-                    break;
-                case LEFT:
-                    modelViewMatrix.rotateLocalY(-Math.PI / 180);
-                    break;
-                case RIGHT:
-                    modelViewMatrix.rotateLocalY(Math.PI / 180);
-                    break;
-            }
+            if (pressedKeys.contains(KeyCode.UP))
+                modelViewMatrix.translateLocal(0, 0, 0.05);
+            else if (pressedKeys.contains(KeyCode.DOWN))
+                modelViewMatrix.translateLocal(0, 0, -0.05);
+            if (pressedKeys.contains(KeyCode.LEFT))
+                modelViewMatrix.rotateLocalY(-Math.PI / 180);
+            else if (pressedKeys.contains(KeyCode.RIGHT))
+                modelViewMatrix.rotateLocalY(Math.PI / 180);
             if (insideCube && isCodeDoorShowing()) {
                 modelViewMatrix.invert(invertMatrix).getTranslation(cameraPosition);
                 if (x * cameraPosition.x < 0) { // x changed sign => just crossed the door
                     WebFxKitLauncher.getApplication().getHostServices().showDocument("https://github.com/webfx-demos/webfx-demo-webgl/blob/main/webfx-demo-webgl-application/src/main/java/dev/webfx/demo/webgl/WebGLDemo.java");
-                    pressedKeyCode = null;
                 }
             }
         }
