@@ -126,23 +126,23 @@ public final class CubeScene {
         };
 
         images = new Image[] {
-                loadImage("WebFXCard.webp"),         // Front face   - image aspect ratio: 1 🙂
-                loadImage("JavaFullStackCard.webp"), // Back face    - image aspect ratio: 1 🙂
-                loadImage("LongTermCard.webp"),      // Top face     - image aspect ratio: 1 🙂
-                loadImage("MagicalCard.webp"),       // Bottom face  - image aspect ratio: 1 🙂
-                loadImage("CrossPlatformCard.webp"), // Right face   - image aspect ratio: 1 🙂
-                loadImage("ResponsiveCard.webp"),    // Left face    - image aspect ratio: 1 🙂
-                loadImage("CodeDoor.webp"),          // Door (right) - image aspect ratio: 1 🙂
-                loadImage("CodeDoor.webp"),          // Door (left)  - image aspect ratio: 1 🙂
+                loadImage("WebFXCard.webp"),         // Front face   - image aspect ratio: 1 👍
+                loadImage("JavaFullStackCard.webp"), // Back face    - image aspect ratio: 1 👍
+                loadImage("LongTermCard.webp"),      // Top face     - image aspect ratio: 1 👍
+                loadImage("MagicalCard.webp"),       // Bottom face  - image aspect ratio: 1 👍
+                loadImage("CrossPlatformCard.webp"), // Right face   - image aspect ratio: 1 👍
+                loadImage("ResponsiveCard.webp"),    // Left face    - image aspect ratio: 1 👍
+                loadImage("CodeDoor.webp"),          // Door (right) - image aspect ratio: 1 👍
+                loadImage("CodeDoor.webp"),          // Door (left)  - image aspect ratio: 1 👍
         };
 
         videos = new Video[]{
-                new Video(gl, "FX2048.mp4"),      // Front face  - video aspect ratio: 1 🙂
-                new Video(gl, "ModernGauge.mp4"), // Back face   - video aspect ratio: 1 🙂
-                new Video(gl, "SpaceFX.mp4"),     // Left face   - video aspect ratio: 1 🙂
-                new Video(gl, "Mandelbrot.mp4"),  // Right face  - video aspect ratio: 1.55 😕
-                new Video(gl, "DemoFX.mp4"),      // Top face    - video aspect ratio: 1.77 😕
-                new Video(gl, "EnzoClocks.mp4"),  // Bottom face - video aspect ratio: 1.69 😕
+                new Video(gl, "FX2048.mp4"),      // Front face  - video aspect ratio: 1    👍
+                new Video(gl, "ModernGauge.mp4"), // Back face   - video aspect ratio: 1    👍
+                new Video(gl, "SpaceFX.mp4"),     // Left face   - video aspect ratio: 1    👍
+                new Video(gl, "Mandelbrot.mp4"),  // Right face  - video aspect ratio: 1.55 👎
+                new Video(gl, "DemoFX.mp4"),      // Top face    - video aspect ratio: 1.77 👎
+                new Video(gl, "EnzoClocks.mp4"),  // Bottom face - video aspect ratio: 1.69 👎
         };
 
         // Mouse steering
@@ -344,7 +344,7 @@ public final class CubeScene {
             if (insideCube && isCodeDoorShowing()) {
                 modelViewMatrix.invert(invertMatrix).getTranslation(cameraPosition);
                 if (x * cameraPosition.x < 0) { // x changed sign => just crossed the door
-                    WebFxKitLauncher.getApplication().getHostServices().showDocument("https://github.com/webfx-demos/webfx-demo-webgl/blob/main/webfx-demo-webgl-application/src/main/java/dev/webfx/demo/webgl/WebGLApplication.java");
+                    WebFxKitLauncher.getApplication().getHostServices().showDocument("https://github.com/webfx-demos/webfx-demo-webgl/blob/main/webfx-demo-webgl-application/src/main/java/dev/webfx/demo/webgl/WebGLDemo.java");
                     pressedKeyCode = null;
                 }
             }
