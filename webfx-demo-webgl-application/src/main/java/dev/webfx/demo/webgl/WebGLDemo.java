@@ -3,7 +3,6 @@ package dev.webfx.demo.webgl;
 import dev.webfx.demo.webgl.cube.CubeScene;
 import dev.webfx.demo.webgl.smoke.SmokeScene;
 import dev.webfx.demo.webgl.text.TextScene;
-import dev.webfx.extras.switches.Switch;
 import dev.webfx.kit.launcher.WebFxKitLauncher;
 import dev.webfx.kit.util.properties.FXProperties;
 import dev.webfx.platform.resource.Resource;

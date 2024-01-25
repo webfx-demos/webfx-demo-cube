@@ -92,8 +92,6 @@
     <public includes="dev/webfx/demo/webgl/smoke/" path=""/>
     <resource path="dev/webfx/demo/webgl/text"/>
     <public includes="dev/webfx/demo/webgl/text/" path=""/>
-    <!--=============================< webfx-extras-switches >==============================-->
-    <source path="dev/webfx/extras/switches"/>
     <!--============================< webfx-extras-util-color >=============================-->
     <source path="dev/webfx/extras/util/color"/>
     <!--=================================< webfx-kit-gwt >==================================-->

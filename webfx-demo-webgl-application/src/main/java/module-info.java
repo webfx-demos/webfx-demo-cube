@@ -7,7 +7,6 @@ module webfx.demo.webgl.application {
     requires javafx.base;
     requires javafx.graphics;
     requires javafx.media;
-    requires webfx.extras.switches;
     requires webfx.extras.util.color;
     requires webfx.kit.launcher;
     requires webfx.kit.util;
