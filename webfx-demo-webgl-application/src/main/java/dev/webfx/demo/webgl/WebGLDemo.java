@@ -24,39 +24,40 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.util.Arrays;
-import java.util.function.BiConsumer;
 
 /**
+ * This demo illustrates how to use WebGL in WebFX. WebFX provides a WebGLRenderingContext over a JavaFX canvas that you
+ * can use to program the GPU, exactly as you would do from a JS webapp, but the rest of the UI is using the standard
+ * JavaFX API.
+ *
+ * Note that this demo is not cross-platform (as opposed to all other WebFX demos) because WebGL is a technology only
+ * available in the browser (OpenJFX doesn't provide an equivalent low-level API access to OpenGL).
+ *
  * @author Bruno Salmon
  */
 public class WebGLDemo extends Application {
 
-    private static final Font font = Font.loadFont(Resource.toUrl("Injekuta-Reg.otf", WebGLDemo.class), 14);
-    private static final Color KEY_CORDER_COLOR = new Color(1, 1, 1, 0.2);
+    private static final Font FONT = Font.loadFont(Resource.toUrl("Injekuta-Reg.otf", WebGLDemo.class), 14);
+    private static final Color KEY_BORDER_COLOR = new Color(1, 1, 1, 0.2);
     private static final CornerRadii KEY_BORDER_RADII = new CornerRadii(5);
 
     private final Canvas canvas = new Canvas();
     private final CubeScene cubeScene = new CubeScene(canvas);
     private final SmokeScene smokeScene = new SmokeScene(canvas);
     private final TextScene textScene = new TextScene();
-    private final GridPane gridPane = new GridPane();
-    private final Scene scene = new Scene(new StackPane(canvas, textScene.getContainer(), gridPane), 800, 600, Color.web("#310E68"));
-    private final Text fpsText = createWhiteText("");
     private final Circle selectedPenCircle = new Circle(13, Color.TRANSPARENT);
     private boolean generateSmoke;
     private double lastGeneratedSmokeTimeSeconds;
 
     @Override
     public void start(Stage primaryStage) {
+        GridPane gridPane = new GridPane();
         gridPane.setHgap(40);
         gridPane.setVgap(15);
-        StackPane.setAlignment(gridPane, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(gridPane, new Insets(20));
-        gridPane.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 
         int rowIndex = 0;
-
         // FPS
+        Text fpsText = createWhiteText("");
         gridPane.addRow(rowIndex++, createWhiteText("FPS"), fpsText);
         // Pen heat
         gridPane.addRow(rowIndex++, createWhiteText("Pen Heat"), createHeatBox());
@@ -98,8 +99,13 @@ public class WebGLDemo extends Application {
             }
         }.start();
 
+        Scene scene = new Scene(new StackPane(canvas, textScene.getContainer(), gridPane), 800, 600, Color.web("#310E68"));
+
         canvas.widthProperty().bind(scene.widthProperty());
         canvas.heightProperty().bind(scene.heightProperty());
+        StackPane.setAlignment(gridPane, Pos.BOTTOM_LEFT);
+        StackPane.setMargin(gridPane, new Insets(20));
+        gridPane.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -107,7 +113,7 @@ public class WebGLDemo extends Application {
 
     private static Text createWhiteText(String text) {
         Text t = new Text(text);
-        t.setFont(font);
+        t.setFont(FONT);
         t.setFill(Color.WHITE);
         return t;
     }
@@ -168,42 +174,23 @@ public class WebGLDemo extends Application {
     }
 
     private HBox createKeysBox() {
-        StackPane[] keyNodes = {
+        return new HBox(5, new StackPane[]{
                 createKeyNode("←", KeyCode.LEFT),
                 createKeyNode("↑", KeyCode.UP),
                 createKeyNode("↓", KeyCode.DOWN),
                 createKeyNode("→", KeyCode.RIGHT)
-        };
-        BiConsumer<KeyCode, Boolean> keyHandler = (keyCode, pressed) -> {
-            switch (keyCode) {
-                case LEFT:  onKeyEvent(keyNodes[0], keyCode, pressed); break;
-                case UP:    onKeyEvent(keyNodes[1], keyCode, pressed); break;
-                case DOWN:  onKeyEvent(keyNodes[2], keyCode, pressed); break;
-                case RIGHT: onKeyEvent(keyNodes[3], keyCode, pressed); break;
-            }
-        };
-        scene.setOnKeyPressed( e -> keyHandler.accept(e.getCode(), true));
-        scene.setOnKeyReleased(e -> keyHandler.accept(e.getCode(), false));
-        return new HBox(5, keyNodes);
+        });
     }
 
     private StackPane createKeyNode(String keyText, KeyCode keyCode) {
         StackPane keyNode = new StackPane(createWhiteText(keyText));
         keyNode.setPrefSize(30, 30);
-        keyNode.setBorder(new Border(new BorderStroke(KEY_CORDER_COLOR, BorderStrokeStyle.SOLID, KEY_BORDER_RADII, BorderStroke.THIN)));
+        keyNode.setBorder(new Border(new BorderStroke(KEY_BORDER_COLOR, BorderStrokeStyle.SOLID, KEY_BORDER_RADII, BorderStroke.THIN)));
         keyNode.setCursor(Cursor.HAND);
-        keyNode.setOnMousePressed( e -> onKeyEvent(keyNode, keyCode, true));
-        keyNode.setOnMouseReleased(e -> onKeyEvent(keyNode, keyCode, false));
+        keyNode.setOnMousePressed( e -> cubeScene.onKeyPressed(keyCode));
+        keyNode.setOnMouseReleased(e -> cubeScene.onKeyReleased(keyCode));
+        cubeScene.setKeyListener(keyCode, pressed ->
+                keyNode.setBackground(pressed ? new Background(new BackgroundFill(KEY_BORDER_COLOR, KEY_BORDER_RADII, null)) : null));
         return keyNode;
-    }
-
-    private void onKeyEvent(StackPane keyNode, KeyCode keyCode, boolean pressed) {
-        if (pressed) {
-            cubeScene.onKeyPressed(keyCode);
-            keyNode.setBackground(new Background(new BackgroundFill(KEY_CORDER_COLOR, KEY_BORDER_RADII, null)));
-        } else {
-            cubeScene.onKeyReleased(keyCode);
-            keyNode.setBackground(null);
-        }
     }
 }

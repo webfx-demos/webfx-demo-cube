@@ -8,6 +8,7 @@ import dev.webfx.platform.typedarray.TypedArrayFactory;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Cursor;
+import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
@@ -15,8 +16,11 @@ import javafx.scene.paint.Color;
 import org.joml.Matrix4d;
 import org.joml.Vector3d;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * @author Bruno Salmon
@@ -49,6 +53,7 @@ public final class CubeScene {
     private Image[] images;
     private Video[] videos;
     private final Set<KeyCode> pressedKeys = new HashSet<>();
+    private final Map<KeyCode, Consumer<Boolean>> keyListeners = new HashMap<>();
 
 
     private final BooleanProperty playVideosProperty = new SimpleBooleanProperty() {
@@ -143,9 +148,9 @@ public final class CubeScene {
                 new Video(gl, "FX2048.mp4"),      // Front face  - video aspect ratio: 1    👍
                 new Video(gl, "ModernGauge.mp4"), // Back face   - video aspect ratio: 1    👍
                 new Video(gl, "SpaceFX.mp4"),     // Left face   - video aspect ratio: 1    👍
-                new Video(gl, "Mandelbrot.mp4"),  // Right face  - video aspect ratio: 1.55 👎
-                new Video(gl, "DemoFX.mp4"),      // Top face    - video aspect ratio: 1.77 👎
-                new Video(gl, "EnzoClocks.mp4"),  // Bottom face - video aspect ratio: 1.69 👎
+                new Video(gl, "Mandelbrot.mp4"),  // Right face  - video aspect ratio: 1.55 👎🤷
+                new Video(gl, "DemoFX.mp4"),      // Top face    - video aspect ratio: 1.77 👎🤷
+                new Video(gl, "EnzoClocks.mp4"),  // Bottom face - video aspect ratio: 1.69 👎🤷
         };
 
         // Mouse steering
@@ -166,6 +171,15 @@ public final class CubeScene {
             mouseDeltaX = e.getDeltaX(); mouseDeltaY = e.getDeltaY();
             mouseInertiaFactor = 0.001;
         });
+
+        // Keyboard steering
+        FXProperties.runNowAndOnPropertiesChange(() -> {
+            Scene scene = canvas.getScene();
+            if (scene != null) {
+                scene.setOnKeyPressed( e -> onKeyPressed(e.getCode()));
+                scene.setOnKeyReleased(e -> onKeyReleased(e.getCode()));
+            }
+        }, canvas.sceneProperty());
 
         FXProperties.runNowAndOnPropertiesChange(() -> {
             // Create a perspective matrix, a special matrix that is used to simulate the distortion of perspective in a camera.
@@ -288,12 +302,22 @@ public final class CubeScene {
         }
     }
 
+    public void setKeyListener(KeyCode keyCode, Consumer<Boolean> keyListener) {
+        keyListeners.put(keyCode, keyListener);
+    }
+
     public void onKeyPressed(KeyCode keyCode) {
         pressedKeys.add(keyCode);
+        Consumer<Boolean> keyListener = keyListeners.get(keyCode);
+        if (keyListener != null)
+            keyListener.accept(true);
     }
 
     public void onKeyReleased(KeyCode keyCode) {
         pressedKeys.remove(keyCode);
+        Consumer<Boolean> keyListener = keyListeners.get(keyCode);
+        if (keyListener != null)
+            keyListener.accept(false);
     }
 
     public void onAnimationFrame(long now) {
