@@ -25,12 +25,21 @@ public class SmokeScene {
 
     private final Canvas canvas;
     private final WebGLRenderingContext gl;
-    private final DoubleProperty heightFactorProperty = new SimpleDoubleProperty(1) {
+    private final DoubleProperty textureWidthFactorProperty = new SimpleDoubleProperty(1) {
         @Override
         protected void invalidated() {
             if (gl != null) {
                 initFramebuffers();
-                returnCleanContext();
+                returnCleanContextForCubeScene();
+            }
+        }
+    };
+    private final DoubleProperty textureHeightFactorProperty = new SimpleDoubleProperty(1) {
+        @Override
+        protected void invalidated() {
+            if (gl != null) {
+                initFramebuffers();
+                returnCleanContextForCubeScene();
             }
         }
     };
@@ -80,36 +89,36 @@ public class SmokeScene {
         }
 
         WebGLShader
-                baseVertexShader = compileShader(gl.VERTEX_SHADER, Resource.getText(Resource.toUrl("baseVertexShader.glsl", getClass()))),
-                clearShader = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("clearShader.glsl", getClass()))),
-                displayShader = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("displayShader.glsl", getClass()))),
-                splatShader = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("splatShader.glsl", getClass()))),
+                baseVertexShader       = compileShader(gl.VERTEX_SHADER,   Resource.getText(Resource.toUrl("baseVertexShader.glsl", getClass()))),
+                clearShader            = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("clearShader.glsl", getClass()))),
+                displayShader          = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("displayShader.glsl", getClass()))),
+                splatShader            = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("splatShader.glsl", getClass()))),
                 advectionManualFilteringShader = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("advectionManualFilteringShader.glsl", getClass()))),
-                advectionShader = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("advectionShader.glsl", getClass()))),
-                divergenceShader = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("divergenceShader.glsl", getClass()))),
-                curlShader = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("curlShader.glsl", getClass()))),
-                vorticityShader = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("vorticityShader.glsl", getClass()))),
-                pressureShader = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("pressureShader.glsl", getClass()))),
+                advectionShader        = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("advectionShader.glsl", getClass()))),
+                divergenceShader       = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("divergenceShader.glsl", getClass()))),
+                curlShader             = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("curlShader.glsl", getClass()))),
+                vorticityShader        = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("vorticityShader.glsl", getClass()))),
+                pressureShader         = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("pressureShader.glsl", getClass()))),
                 gradientSubtractShader = compileShader(gl.FRAGMENT_SHADER, Resource.getText(Resource.toUrl("gradientSubtractShader.glsl", getClass())));
 
-        clearProgram = new GLProgram(baseVertexShader, clearShader);
-        displayProgram = new GLProgram(baseVertexShader, displayShader);
-        splatProgram = new GLProgram(baseVertexShader, splatShader);
-        advectionProgram = new GLProgram(baseVertexShader, supportLinearFiltering ? advectionShader : advectionManualFilteringShader);
-        divergenceProgram = new GLProgram(baseVertexShader, divergenceShader);
-        curlProgram = new GLProgram(baseVertexShader, curlShader);
-        vorticityProgram = new GLProgram(baseVertexShader, vorticityShader);
-        pressureProgram = new GLProgram(baseVertexShader, pressureShader);
+        clearProgram            = new GLProgram(baseVertexShader, clearShader);
+        displayProgram          = new GLProgram(baseVertexShader, displayShader);
+        splatProgram            = new GLProgram(baseVertexShader, splatShader);
+        advectionProgram        = new GLProgram(baseVertexShader, supportLinearFiltering ? advectionShader : advectionManualFilteringShader);
+        divergenceProgram       = new GLProgram(baseVertexShader, divergenceShader);
+        curlProgram             = new GLProgram(baseVertexShader, curlShader);
+        vorticityProgram        = new GLProgram(baseVertexShader, vorticityShader);
+        pressureProgram         = new GLProgram(baseVertexShader, pressureShader);
         gradientSubtractProgram = new GLProgram(baseVertexShader, gradientSubtractShader);
 
         initBlit();
 
         FXProperties.runNowAndOnPropertiesChange(this::onResize, canvas.widthProperty(), canvas.heightProperty());
 
-        returnCleanContext();
+        returnCleanContextForCubeScene();
     }
 
-    private void returnCleanContext() {
+    private void returnCleanContextForCubeScene() {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.disable(gl.BLEND);
     }
@@ -118,36 +127,49 @@ public class SmokeScene {
         UiScheduler.scheduleInAnimationFrame(() -> {
             gl.viewport(0, 0, gl.getDrawingBufferWidth(), gl.getDrawingBufferHeight());
             initFramebuffers();
-            returnCleanContext();
+            returnCleanContextForCubeScene();
         }, 1);
     }
 
-    public DoubleProperty heightFactorProperty() {
-        return heightFactorProperty;
+    double getTextureWidthFactor() {
+        return textureWidthFactorProperty.get();
     }
 
-    double getHeightFactor() {
-        return heightFactorProperty.get();
+    public DoubleProperty textureWidthFactorProperty() {
+        return textureWidthFactorProperty;
     }
 
-    public void setHeightFactor(double heightFactor) {
-        heightFactorProperty().set(heightFactor);
+    public void setTextureWidthFactor(double factor) {
+        textureWidthFactorProperty().set(factor);
     }
 
 
-    long lastTime;
+    public DoubleProperty textureHeightFactorProperty() {
+        return textureHeightFactorProperty;
+    }
+
+    double getTextureHeightFactor() {
+        return textureHeightFactorProperty.get();
+    }
+
+    public void setTextureHeightFactor(double factor) {
+        textureHeightFactorProperty().set(factor);
+    }
+
+
+    private long lastAnimationFrameTime;
 
     public void onAnimationFrame(long now) {
         if (gl == null)
             return;
 
-        double dt = Math.min((now - lastTime) * 1d / 1_000_000_000, 0.016);
-        lastTime = now;
+        double dt = Math.min((now - lastAnimationFrameTime) * 1d / 1_000_000_000, 0.016);
+        lastAnimationFrameTime = now;
 
         gl.viewport(0, 0, textureWidth, textureHeight);
 
-        double texelWidth = 1d / textureWidth;
-        double texelHeight = 1d / (getHeightFactor() * textureHeight);
+        double texelWidth = 1d / (getTextureWidthFactor() * textureWidth);
+        double texelHeight = 1d / (getTextureHeightFactor() * textureHeight);
 
         advectionProgram.bind();
         gl.uniform2f(advectionProgram.uniforms.get("texelSize"), texelWidth, texelHeight);
@@ -164,12 +186,10 @@ public class SmokeScene {
         blit(density.getWrite().fbo);
         density.swap();
 
-        //for (Pointer pointer : pointers) {
-            if (pointer.moved) {
-                splat(pointer.x, pointer.y, pointer.dx, pointer.dy, pointer.color);
-                pointer.moved = false;
-            }
-        //}
+        if (pointer.moved) {
+            splat(pointer.x, pointer.y, pointer.dx, pointer.dy, pointer.color);
+            pointer.moved = false;
+        }
 
         curlProgram.bind();
         gl.uniform2f(curlProgram.uniforms.get("texelSize"), texelWidth, texelHeight);
@@ -218,12 +238,12 @@ public class SmokeScene {
         blit(velocity.getWrite().fbo);
         velocity.swap();
 
-        gl.viewport(0, (int) (gl.getDrawingBufferHeight() * (1 - getHeightFactor())), gl.getDrawingBufferWidth(), (int) (gl.getDrawingBufferHeight() * heightFactorProperty.doubleValue()));
+        gl.viewport(0, (int) (gl.getDrawingBufferHeight() * (1 - getTextureHeightFactor())), gl.getDrawingBufferWidth(), (int) (gl.getDrawingBufferHeight() * getTextureHeightFactor()));
         displayProgram.bind();
         gl.uniform1i(displayProgram.uniforms.get("uTexture"), density.getRead().texId);
         blit(null);
 
-        returnCleanContext();
+        returnCleanContextForCubeScene();
     }
 
     private void initBlit() {
@@ -246,7 +266,7 @@ public class SmokeScene {
     }
 
     private void splat(double x, double y, double dx, double dy, Color color) {
-        double canvasWidth = canvas.getWidth(), canvasHeight = canvas.getHeight() * getHeightFactor();
+        double canvasWidth = canvas.getWidth(), canvasHeight = canvas.getHeight() * getTextureHeightFactor();
         splatProgram.bind();
         gl.uniform1i(splatProgram.uniforms.get("uTarget"), velocity.getRead().texId);
         gl.uniform1f(splatProgram.uniforms.get("aspectRatio"), canvasWidth / canvasHeight);

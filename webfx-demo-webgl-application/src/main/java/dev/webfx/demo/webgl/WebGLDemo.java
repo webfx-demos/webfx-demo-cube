@@ -55,23 +55,24 @@ public class WebGLDemo extends Application {
         gridPane.setHgap(40);
         gridPane.setVgap(15);
 
+        Switch tubeSwitch, codeSwitch;
         int rowIndex = 0;
         // FPS
         Text fpsText = createWhiteText("");
         gridPane.addRow(rowIndex++, createWhiteText("FPS"), fpsText);
         // Pen heat
         gridPane.addRow(rowIndex++, createWhiteText("Pen Heat"), createHeatBox());
-        // HDPI switch
-        if (WebFxKitLauncher.getCanvasPixelDensity(canvas) > 1) // true on HDPI screens
+        // HDPI switch (displayed only on HDPI screens)
+        if (WebFxKitLauncher.getCanvasPixelDensity(canvas) > 1) // happens on HDPI screens
             gridPane.addRow(rowIndex++, createWhiteText("HDPI"), createHdpiSwitch());
         // Rotate switch
         gridPane.addRow(rowIndex++, createWhiteText("Rotate"), createSwitch(cubeScene.autoRotateProperty()));
         // Tube switch
-        gridPane.addRow(rowIndex++, createWhiteText("Tube"), createSwitch(cubeScene.tubeProperty()));
+        gridPane.addRow(rowIndex++, createWhiteText("Tube"), tubeSwitch = createSwitch(cubeScene.tubeProperty()));
         // Videos switch
         gridPane.addRow(rowIndex++, createWhiteText("Videos"), createSwitch(cubeScene.playVideosProperty()));
         // Code switch
-        gridPane.addRow(rowIndex++, createWhiteText("Code"), createSwitch(cubeScene.codeDoorShowingProperty()));
+        gridPane.addRow(rowIndex++, createWhiteText("Code"), codeSwitch = createSwitch(cubeScene.codeDoorShowingProperty()));
         // Keys legend
         gridPane.addRow(rowIndex, createWhiteText("Keys"), createKeysBox());
 
@@ -82,6 +83,7 @@ public class WebGLDemo extends Application {
 
             @Override
             public void handle(long now) {
+                // FPS measurement
                 framesCount++;
                 final double nowSeconds = now / 1_000_000_000d;
                 if (lastFrameSeconds == 0)
@@ -91,10 +93,12 @@ public class WebGLDemo extends Application {
                     framesCount = 0;
                     lastFrameSeconds = nowSeconds;
                 }
+                // Cube scene animation
                 cubeScene.onAnimationFrame(now);
-                if (lastGeneratedSmokeTimeSeconds > 0 && nowSeconds < lastGeneratedSmokeTimeSeconds + 8) {
+                // Smoke scene animation (can be stopped after 8s of last smoke generation as it consumes GPU even with no smoke)
+                if (lastGeneratedSmokeTimeSeconds > 0 && nowSeconds < lastGeneratedSmokeTimeSeconds + 6)
                     smokeScene.onAnimationFrame(now);
-                }
+                // Text scene animation
                 textScene.onAnimationFrame(now);
             }
         }.start();
@@ -167,7 +171,8 @@ public class WebGLDemo extends Application {
             selectedPenCircle.layoutXProperty().bind(c.layoutXProperty());
             selectedPenCircle.layoutYProperty().bind(c.layoutYProperty());
             textScene.restart();
-            smokeScene.setHeightFactor(color == Color.PINK ? 0.25 : color == Color.ORANGE ? 0.4 : color == Color.RED ? 0.7 : 0);
+            smokeScene.setTextureWidthFactor (color == Color.PINK ? 1    : color == Color.ORANGE ? 0.7 : color == Color.RED ? 0.67 : 1);
+            smokeScene.setTextureHeightFactor(color == Color.PINK ? 0.25 : color == Color.ORANGE ? 0.4 : color == Color.RED ? 0.7  : 1);
             lastGeneratedSmokeTimeSeconds = 0;
         });
         return c;
