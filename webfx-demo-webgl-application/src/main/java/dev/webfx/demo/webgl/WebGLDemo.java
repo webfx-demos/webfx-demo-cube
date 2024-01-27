@@ -76,6 +76,12 @@ public class WebGLDemo extends Application {
         // Keys legend
         gridPane.addRow(rowIndex, createWhiteText("Keys"), createKeysBox());
 
+        // Switching Tube on when user switches Code on (to make the Code door visible inside the cube)
+        codeSwitch.selectedProperty().addListener(observable -> {
+            if (codeSwitch.isSelected())
+                tubeSwitch.setSelected(true);
+        });
+
         new AnimationTimer() {
             final double fpsRefreshSeconds = 0.5;
             double lastFrameSeconds;
