@@ -32,7 +32,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        app: [{name: 'WebGLDemo', module-token: 'webfx-demo-webgl', gwt-token: 'webfx_demo_webgl', web-push-branch: 'webgl', ios-bundle-id: 'dev.webfx.demo.webgl', version: '0.1.0-SNAPSHOT'}]
+        app: [{name: 'CubeDemo', module-token: 'webfx-demo-cube', gwt-token: 'webfx_demo_cube', web-push-branch: 'cube', ios-bundle-id: 'dev.webfx.demo.cube', version: '0.1.0-SNAPSHOT'}]
         os-config:  [1]
         include:
           - os-config: 1 # Generates builds 1) 2) 3) 4) & 5)

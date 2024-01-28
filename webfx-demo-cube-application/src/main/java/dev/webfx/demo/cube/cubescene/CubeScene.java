@@ -364,7 +364,7 @@ public final class CubeScene {
             if (insideCube && isCodeDoorShowing()) {
                 modelViewMatrix.invert(invertMatrix).getTranslation(cameraPosition);
                 if (x * cameraPosition.x < 0) { // x changed sign => just crossed the door
-                    WebFxKitLauncher.getApplication().getHostServices().showDocument("https://github.com/webfx-demos/webfx-demo-webgl/blob/main/webfx-demo-webgl-application/src/main/java/dev/webfx/demo/webgl/WebGLDemo.java");
+                    WebFxKitLauncher.getApplication().getHostServices().showDocument("https://github.com/webfx-demos/webfx-demo-cube/blob/main/webfx-demo-cube-application/src/main/java/dev/webfx/demo/cube/CubeApplication.java");
                 }
             }
         }
