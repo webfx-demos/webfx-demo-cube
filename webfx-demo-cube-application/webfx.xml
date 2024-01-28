@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project applicationId="dev.webfx.demo.cube" applicationLabel="Cube">
+
+    <exported-packages>
+        <source-packages/>
+        <resource-packages/>
+    </exported-packages>
+
+    <embed-resources>
+        <resource>dev/webfx/demo/cube/cubescene/fragmentShader.glsl</resource>
+        <resource>dev/webfx/demo/cube/cubescene/vertexShader.glsl</resource>
+        <resource>dev/webfx/demo/cube/smokescene/baseVertexShader.glsl</resource>
+        <resource>dev/webfx/demo/cube/smokescene/clearShader.glsl</resource>
+        <resource>dev/webfx/demo/cube/smokescene/displayShader.glsl</resource>
+        <resource>dev/webfx/demo/cube/smokescene/splatShader.glsl</resource>
+        <resource>dev/webfx/demo/cube/smokescene/advectionManualFilteringShader.glsl</resource>
+        <resource>dev/webfx/demo/cube/smokescene/advectionShader.glsl</resource>
+        <resource>dev/webfx/demo/cube/smokescene/divergenceShader.glsl</resource>
+        <resource>dev/webfx/demo/cube/smokescene/curlShader.glsl</resource>
+        <resource>dev/webfx/demo/cube/smokescene/vorticityShader.glsl</resource>
+        <resource>dev/webfx/demo/cube/smokescene/pressureShader.glsl</resource>
+        <resource>dev/webfx/demo/cube/smokescene/gradientSubtractShader.glsl</resource>
+        <resource>dev/webfx/demo/cube/textscene/text.svg</resource>
+    </embed-resources>
+
+    <dependencies>
+        <used-by-source-modules/>
+    </dependencies>
+
+    <providers>
+        <provider interface="javafx.application.Application">dev.webfx.demo.cube.CubeApplication</provider>
+    </providers>
+
+</project>
