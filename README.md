@@ -38,4 +38,8 @@ The generated `index.html` file is located at:
 
 `webfx-demo-cube-application-gwt/target/webfx-demo-cube-application-gwt-0.1.0-SNAPSHOT/webfx_demo_cube_application_gwt/index.html`
 
-Locate and open this file from your IDE, or any webserver (pictures & videos will be blocked by CORS if simply using the `file://` protocol).
+Locate and open this file from your IDE, or any webserver (pictures & videos will be blocked by CORS if just using the `file://` protocol).
+
+## Question?
+
+Feel free to ask [here](https://github.com/webfx-project/webfx/discussions/27) any question related to the usage of WebGL in WebFX.
