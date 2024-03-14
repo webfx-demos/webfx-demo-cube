@@ -109,7 +109,7 @@ final class PenStroke implements CurveInterpolator {
         for (String svgPathToken : allSvgPaths.split("[MmLlHhVvCcQqZzAaSsTtXx]")) { // SsTtXx not yet supported
             if (i != 0 || !svgPathToken.trim().isEmpty()) {
                 char c = allSvgPaths.charAt(i);
-                double[] digits = Arrays.stream(svgPathToken.split("[\\s,]")).dropWhile(String::isEmpty).mapToDouble(Double::parseDouble).toArray();
+                double[] digits = Arrays.stream(svgPathToken.split("[\\s,]")).filter(s -> !s.isEmpty()).mapToDouble(Double::parseDouble).toArray();
                 int p = 0;
                 loop: do {
                     boolean isMoveTo = false, isLineTo = false, isCubicCurve = false, isQuadCurve = false, isArc = false;

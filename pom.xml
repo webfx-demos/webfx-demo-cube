@@ -36,6 +36,7 @@
         <module>webfx-demo-cube-application</module>
         <module>webfx-demo-cube-application-gluon</module>
         <module>webfx-demo-cube-application-gwt</module>
+        <module>webfx-demo-cube-application-j2cl</module>
         <module>webfx-demo-cube-application-openjfx</module>
     </modules>
 

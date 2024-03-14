@@ -33,21 +33,21 @@ public class Switch extends Pane {
         }
     };
 
-    private final ObjectProperty<Paint> selectedBackgroundFillProperty = new SimpleObjectProperty<>(Color.web("#23EA00")) {
+    private final ObjectProperty<Paint> selectedBackgroundFillProperty = new SimpleObjectProperty<Paint>(Color.web("#23EA00")) {
         @Override
         protected void invalidated() {
             updateSwitchUi(true);
         }
     };
 
-    private final ObjectProperty<Paint> unselectedBackgroundFillProperty = new SimpleObjectProperty<>(Color.LIGHTGRAY) {
+    private final ObjectProperty<Paint> unselectedBackgroundFillProperty = new SimpleObjectProperty<Paint>(Color.LIGHTGRAY) {
         @Override
         protected void invalidated() {
             updateSwitchUi(true);
         }
     };
 
-    private final ObjectProperty<Paint> backgroundFillProperty = new SimpleObjectProperty<>() {
+    private final ObjectProperty<Paint> backgroundFillProperty = new SimpleObjectProperty<Paint>() {
         @Override
         protected void invalidated() {
             setBackground(new Background(new BackgroundFill(get(), new CornerRadii(RADIUS), null)));

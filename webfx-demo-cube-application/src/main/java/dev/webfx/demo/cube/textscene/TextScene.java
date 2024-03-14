@@ -39,7 +39,7 @@ public final class TextScene {
             currentlyAnimatedPenStrokeIndex = -1;
         }
     };
-    private final ObjectProperty<Point2D> penPositionProperty = new SimpleObjectProperty<>() {
+    private final ObjectProperty<Point2D> penPositionProperty = new SimpleObjectProperty<Point2D>() {
         @Override
         protected void invalidated() {
             Point2D p = get();
