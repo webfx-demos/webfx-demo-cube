@@ -3,7 +3,6 @@
 module webfx.demo.cube.application {
 
     // Direct dependencies modules
-    requires java.base;
     requires javafx.base;
     requires javafx.graphics;
     requires javafx.media;
