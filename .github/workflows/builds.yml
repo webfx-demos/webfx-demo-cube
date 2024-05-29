@@ -26,6 +26,7 @@ name: Multi-OS builds
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -38,13 +39,44 @@ jobs:
           - os-config: 1 # Generates builds 1) 2) 3) 4) & 5)
             os: ubuntu-latest
             # Note: 1) must run on Ubuntu because the GitHub push action (to update the web-build branch) works only on Ubuntu
-            gwt-artifact-suffix:           'Web.war'                            # build 1)
+            j2cl-artifact-suffix:          'Web.war'                            # build 1)
             #fatjar-artifact-suffix:        'Linux-x64-runnable.jar'             # build 2)
             #jvm-deb-artifact-suffix:       'Linux-x64-jvm-package.deb'          # build 3)
             #jvm-rpm-artifact-suffix:       'Linux-x64-jvm-package.rpm'          # build 4)
             #gluon-desktop-arch-token:      'x86_64-linux'                       # build 5)
             #gluon-desktop-artifact-suffix: 'Linux-x64-native-runnable'          # build 5)
-            MVN:                           '/tmp/maven/apache-maven-3.9.6/bin/mvn'
+            MVN:                           '/tmp/maven/apache-maven-3.8.8/bin/mvn'
+
+          - os-config: 2 # Generates build 6) - Could be in os-config 1 but moved it a separate config to speed up (parallel run)
+            os: ubuntu-latest
+            gluon-android-arch-token:      'aarch64-android'                    # build 6)
+            gluon-android-apk-suffix:      'Android-aarch64.apk'                # build 6)
+            gluon-android-aab-suffix:      'Android-aarch64.aab'                # build 6)
+            MVN:                           '/tmp/maven/apache-maven-3.8.8/bin/mvn'
+
+          - os-config: 3 # Generates builds 7) 8) 9) & 10)
+            os: windows-latest
+            fatjar-artifact-suffix:        'Windows-x64-runnable.jar'           # build 7)
+            jvm-exe-artifact-suffix:       'Windows-x64-jvm-installer.exe'      # build 8)
+            jvm-msi-artifact-suffix:       'Windows-x64-jvm-installer.msi'      # build 9)
+            gluon-desktop-arch-token:      'x86_64-windows'                     # build 10)
+            # Commented as getting error: Error running candle to generate wixobj
+            # gluon-desktop-artifact-suffix: 'Windows-x64-native-runnable.exe'    # build 10)
+            # msi-desktop-artifact-suffix:   'Windows-x64-jvm-installer.msi'      # build 9)
+            MVN:                           'mvn -D"javafx.platform"="win"'
+
+          - os-config: 4 # Generates builds 11) 12) 13) 14) & 15)
+            os: macos-latest
+            fatjar-artifact-suffix:        'MacOS-x64.jar'                      # build 11)
+            jvm-dmg-artifact-suffix:       'MacOS-x64-jvm.dmg'                  # build 12)
+            jvm-pkg-artifact-suffix:       'MacOS-x64-jvm.pkg'                  # build 13)
+            # Commented MacOS Desktop due to new error from Gluon plugin: No valid Identity (Certificate) found for macOS development.
+            # gluon-desktop-arch-token:      'x86_64-darwin'                      # build 14)
+            # gluon-desktop-Artifact-suffix: 'MacOS-x64-native-runnable'          # build 14)
+            # Note: the iOS build needs the Apple certificate in secrets (the steps will be skipped otherwise)
+            gluon-ios-arch-token:          'arm64-ios'                          # build 15)
+            gluon-ios-artifact-suffix:     'iOS-arm64-native.ipa'               # build 15)
+            MVN:                           '/tmp/maven/apache-maven-3.8.8/bin/mvn'
 
     env:
       app-name:  ${{ matrix.app.name }}
@@ -90,25 +122,25 @@ jobs:
 
       # Set up the JDK (WebFX requires JDK13+ due to javac bugs in prior versions - otherwise JDK11+ should be enough in theory)
       - name: Set up JDK ${{ env.jdk-version }}
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: ${{ env.jdk-version }}
 
-      # Forcing Maven 3.9.6 because of a JavaFX issue with >= 3.9.7
+      # Forcing Maven 3.8.8 because of a JavaFX issue with >= 3.9.7 and GluonFX Maven Plugin requires Maven 3.8.8
       - if: runner.os != 'Windows'
-        name: Download and Install Maven 3.9.6 (JavaFX issue with Maven >= 3.9.7)
+        name: Download and Install Maven 3.8.8
         run: |
           mkdir /tmp/download
           mkdir /tmp/maven/
           cd /tmp/download
-          curl -O https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
-          tar -xzf apache-maven-3.9.6-bin.tar.gz -C /tmp/maven/
+          curl -O https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz
+          tar -xzf apache-maven-3.8.8-bin.tar.gz -C /tmp/maven/
           ${{ matrix.MVN }} -version
 
       # Checkout this repository
       - name: Checkout this repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ${{ env.app-repo-dir }}
 
