@@ -210,8 +210,15 @@ jobs:
 
       # Staging 1)
       - if: matrix.gwt-artifact-suffix != null
-        name: Copy Web archive to staging
+        name: Copy GWT archive to staging
         run: cp ${{ env.app-gwt-module-dir }}/target/*.war staging/${{ env.app-name }}-${{ matrix.gwt-artifact-suffix }}
+
+      # Staging 1)
+      - if: matrix.j2cl-artifact-suffix != null
+        name: Copy J2CL archive to staging
+        run: |
+          zip -r ${{ env.app-j2cl-module-dir }}/target/Web.war ${{ env.app-j2cl-module-dir }}/target/${{ matrix.app.module-token }}-application-j2cl-${{ matrix.app.version }}
+          cp ${{ env.app-j2cl-module-dir }}/target/*.war staging/${{ env.app-name }}-${{ matrix.j2cl-artifact-suffix }}
 
       # Staging 2) | 7) | 11)
       - if: matrix.fatjar-artifact-suffix != null
