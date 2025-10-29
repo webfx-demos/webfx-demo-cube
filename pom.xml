@@ -38,6 +38,8 @@
         <module>webfx-demo-cube-application-gwt</module>
         <module>webfx-demo-cube-application-j2cl</module>
         <module>webfx-demo-cube-application-openjfx</module>
+        <module>webfx-demo-cube-application-teavm</module>
+        <module>webfx-demo-cube-application-teavm-wasm</module>
     </modules>
 
 </project>

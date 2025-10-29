@@ -5,6 +5,7 @@ import dev.webfx.kit.webgl.*;
 import dev.webfx.platform.resource.Resource;
 import dev.webfx.platform.typedarray.TypedArrayFactory;
 import dev.webfx.platform.uischeduler.UiScheduler;
+import dev.webfx.platform.util.Numbers;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.canvas.Canvas;
@@ -390,7 +391,7 @@ public class SmokeScene {
                 throw new RuntimeException(gl.getProgramInfoLog(program));
 
             Object programParameter = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-            double uniformCount = (double) programParameter;
+            double uniformCount = Numbers.toDouble(programParameter);
             for (int i = 0; i < uniformCount; i++) {
                 String uniformName = gl.getActiveUniform(program, i).getName();
                 uniforms.put(uniformName, gl.getUniformLocation(program, uniformName));

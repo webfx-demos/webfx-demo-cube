@@ -4,7 +4,7 @@ package dev.webfx.platform.resource.gwt;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.resources.client.ClientBundle;
 import com.google.gwt.resources.client.TextResource;
-import dev.webfx.platform.resource.spi.impl.gwt.GwtResourceBundleBase;
+import dev.webfx.platform.resource.spi.impl.web.WebResourceBundleBase;
 
 public interface GwtEmbedResourcesBundle extends ClientBundle {
 
@@ -56,23 +56,23 @@ public interface GwtEmbedResourcesBundle extends ClientBundle {
 
 
 
-    final class ProvidedGwtResourceBundle extends GwtResourceBundleBase {
+    final class ProvidedGwtResourceBundle extends WebResourceBundleBase {
         public ProvidedGwtResourceBundle() {
-            registerResource("dev/webfx/demo/cube/cubescene/fragmentShader.glsl", R.r1());
-            registerResource("dev/webfx/demo/cube/cubescene/vertexShader.glsl", R.r2());
-            registerResource("dev/webfx/demo/cube/smokescene/advectionManualFilteringShader.glsl", R.r3());
-            registerResource("dev/webfx/demo/cube/smokescene/advectionShader.glsl", R.r4());
-            registerResource("dev/webfx/demo/cube/smokescene/baseVertexShader.glsl", R.r5());
-            registerResource("dev/webfx/demo/cube/smokescene/clearShader.glsl", R.r6());
-            registerResource("dev/webfx/demo/cube/smokescene/curlShader.glsl", R.r7());
-            registerResource("dev/webfx/demo/cube/smokescene/displayShader.glsl", R.r8());
-            registerResource("dev/webfx/demo/cube/smokescene/divergenceShader.glsl", R.r9());
-            registerResource("dev/webfx/demo/cube/smokescene/gradientSubtractShader.glsl", R.r10());
-            registerResource("dev/webfx/demo/cube/smokescene/pressureShader.glsl", R.r11());
-            registerResource("dev/webfx/demo/cube/smokescene/splatShader.glsl", R.r12());
-            registerResource("dev/webfx/demo/cube/smokescene/vorticityShader.glsl", R.r13());
-            registerResource("dev/webfx/demo/cube/textscene/text.svg", R.r14());
-            registerResource("dev/webfx/platform/meta/exe/exe.properties", R.r15());
+            registerResource("dev/webfx/demo/cube/cubescene/fragmentShader.glsl", () -> R.r1().getText());
+            registerResource("dev/webfx/demo/cube/cubescene/vertexShader.glsl", () -> R.r2().getText());
+            registerResource("dev/webfx/demo/cube/smokescene/advectionManualFilteringShader.glsl", () -> R.r3().getText());
+            registerResource("dev/webfx/demo/cube/smokescene/advectionShader.glsl", () -> R.r4().getText());
+            registerResource("dev/webfx/demo/cube/smokescene/baseVertexShader.glsl", () -> R.r5().getText());
+            registerResource("dev/webfx/demo/cube/smokescene/clearShader.glsl", () -> R.r6().getText());
+            registerResource("dev/webfx/demo/cube/smokescene/curlShader.glsl", () -> R.r7().getText());
+            registerResource("dev/webfx/demo/cube/smokescene/displayShader.glsl", () -> R.r8().getText());
+            registerResource("dev/webfx/demo/cube/smokescene/divergenceShader.glsl", () -> R.r9().getText());
+            registerResource("dev/webfx/demo/cube/smokescene/gradientSubtractShader.glsl", () -> R.r10().getText());
+            registerResource("dev/webfx/demo/cube/smokescene/pressureShader.glsl", () -> R.r11().getText());
+            registerResource("dev/webfx/demo/cube/smokescene/splatShader.glsl", () -> R.r12().getText());
+            registerResource("dev/webfx/demo/cube/smokescene/vorticityShader.glsl", () -> R.r13().getText());
+            registerResource("dev/webfx/demo/cube/textscene/text.svg", () -> R.r14().getText());
+            registerResource("dev/webfx/platform/meta/exe/exe.properties", () -> R.r15().getText());
 
         }
     }

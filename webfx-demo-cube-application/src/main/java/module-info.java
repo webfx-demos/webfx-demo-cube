@@ -15,6 +15,7 @@ module webfx.demo.cube.application {
     requires webfx.platform.resource;
     requires webfx.platform.typedarray;
     requires webfx.platform.uischeduler;
+    requires webfx.platform.util;
 
     // Exported packages
     exports dev.webfx.demo.cube;
