@@ -13,5 +13,6 @@ module webfx.demo.cube.application.gluon {
     requires webfx.platform.resource.gluon;
     requires webfx.platform.scheduler.jre;
     requires webfx.platform.shutdown.gluon;
+    requires webfx.platform.typedarray.jre;
 
 }

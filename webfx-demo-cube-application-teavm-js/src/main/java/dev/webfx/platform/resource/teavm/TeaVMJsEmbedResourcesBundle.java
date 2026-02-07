@@ -4,7 +4,7 @@ import dev.webfx.platform.resource.spi.impl.teavm.TeaVMResourceBundle;
 import org.teavm.classlib.ResourceSupplier;
 import org.teavm.classlib.ResourceSupplierContext;
 
-public final class TeaVMEmbedResourcesBundle extends TeaVMResourceBundle implements ResourceSupplier {
+public final class TeaVMJsEmbedResourcesBundle extends TeaVMResourceBundle implements ResourceSupplier {
 
     private static final String[] RESOURCE_PATHS = {
         "dev/webfx/demo/cube/cubescene/fragmentShader.glsl",
@@ -30,7 +30,7 @@ public final class TeaVMEmbedResourcesBundle extends TeaVMResourceBundle impleme
         return RESOURCE_PATHS;
     }
 
-    public TeaVMEmbedResourcesBundle() {
+    public TeaVMJsEmbedResourcesBundle() {
         super(RESOURCE_PATHS);
     }
 

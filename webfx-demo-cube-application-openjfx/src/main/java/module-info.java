@@ -12,5 +12,6 @@ module webfx.demo.cube.application.openjfx {
     requires webfx.platform.resource.jre;
     requires webfx.platform.scheduler.jre;
     requires webfx.platform.shutdown.jre;
+    requires webfx.platform.typedarray.jre;
 
 }
