@@ -102,15 +102,15 @@ jobs:
           java-version: ${{ env.jdk-version }}
 
       # Forcing Maven 3.8.8 because of a JavaFX issue with >= 3.9.7 and GluonFX Maven Plugin requires Maven 3.8.8
-      - if: runner.os != 'Windows'
-        name: Download and Install Maven 3.8.8
-        run: |
-          mkdir /tmp/download
-          mkdir /tmp/maven/
-          cd /tmp/download
-          curl -O https://archive.apache.org/dist/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz
-          tar -xzf apache-maven-3.8.8-bin.tar.gz -C /tmp/maven/
-          ${{ matrix.MVN }} -version
+      #      - if: runner.os != 'Windows'
+      #        name: Download and Install Maven 3.8.8
+      #        run: |
+      #          mkdir /tmp/download
+      #          mkdir /tmp/maven/
+      #          cd /tmp/download
+      #          curl -O https://archive.apache.org/dist/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz
+      #          tar -xzf apache-maven-3.8.8-bin.tar.gz -C /tmp/maven/
+      #          ${{ matrix.MVN }} -version
 
       # Check out this repository
       - name: Check out this repository
